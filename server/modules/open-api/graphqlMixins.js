@@ -75,11 +75,14 @@ module.exports = {
       }
     },
     createGraphQlParams(actionName, params){
-      const paramsStr = params
-      .map((item) => {
-        return `${item.name}:${this.schemaTypesToGrahlQLType(item.schema.type, item.schema)}`;
-      }).join(',')
-      return `(${paramsStr})`;
+      if (params && params.length > 0) {
+        const paramsStr = params
+        .map((item) => {
+          return `${item.name}:${this.schemaTypesToGrahlQLType(item.schema.type, item.schema)}`;
+        }).join(',')
+        return `(${paramsStr})`;
+      }
+      return "()";
     },
     createGraphQLTypeDefinition(schemas, resolvers) {
       const firstKey = Object.keys(schemas)[0];

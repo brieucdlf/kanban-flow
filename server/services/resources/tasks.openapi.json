@@ -176,7 +176,7 @@
             "schema": {
               "type": "string"
             }
-          }
+          },
           {
             "name": "createdBy",
             "in": "query",

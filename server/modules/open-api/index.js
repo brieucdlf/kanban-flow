@@ -115,7 +115,7 @@ module.exports = {
   methods: {
     createLinkBuilder(actionDefinition, pathAlias) {
       const operationId = actionDefinition.operationId;
-      const parametersFn = actionDefinition.parameters
+      const parametersFn = (actionDefinition.parameters || [])
       .map((param) => {
         return {
           [param.name]: function (value) {
