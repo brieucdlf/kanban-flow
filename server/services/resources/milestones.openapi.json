@@ -1,0 +1,288 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Milestones",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [{
+    "url": "http://petstore.swagger.io/"
+  }],
+  "paths": {
+    "/milestones/{id}": {
+      "get": {
+        "summary": "Get a milestone data",
+        "operationId": "Milestones.api.read",
+        "tags": ["milestones"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the milestone to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Milestone"
+                }
+              }
+            },
+            "links": {
+              "inBoard": {
+                "operationId": "Boards.api.read",
+                "parameters": {
+                  "id": "$response.body#/boardId"
+                }
+              },
+              "creator": {
+                "operationId": "Users.api.read",
+                "parameters": {
+                  "id": "$response.body#/createdBy"
+                }
+              }
+            }
+          }
+        }
+
+      },
+      "put": {
+        "summary": "update a milestone",
+        "operationId": "Milestones.api.update",
+        "tags": ["milestones"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the milestone to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Milestone"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "delete a milestone",
+        "operationId": "Milestones.api.delete",
+        "tags": ["milestones"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the milestone to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Milestone"
+                }
+              }
+            },
+            "links": {
+              "board": {
+                "operationId": "Boards.api.read",
+                "parameters": {
+                  "id": "$response.body#/boardId"
+                }
+              },
+              "user": {
+                "operationId": "Users.api.read",
+                "parameters": {
+                  "id": "$response.body#/createdBy"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/milestones": {
+      "get": {
+        "summary": "List all milestones",
+        "operationId": "Milestones.api.search",
+        "tags": ["milestones"],
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "boardId",
+            "in": "query",
+            "description": "Get all milestone related to one board",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "createdBy",
+            "in": "query",
+            "description": "Get all milestone related to one board",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dueDate",
+            "in": "query",
+            "description": "Get all milestone with this due date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Milestones"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a milestone",
+        "operationId": "Milestones.api.create",
+        "tags": ["milestones"],
+        "parameters": [
+          {
+            "name": "idLike",
+            "in": "query",
+            "description": "How many items to return at one time (max 100)",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Milestone"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Milestone": {
+        "type": "object",
+        "description": "Properties for each milestone",
+        "required" : ["title", "boardId", "createdBy"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "readOnly": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "boardId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "x-entity": "Boards:id"
+          },
+          "createdBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "x-entity": "Users:id"
+          },
+          "dueDate": {
+            "type": "string"
+          },
+          "dateOfCreation": {
+            "description": "The resource creation date",
+            "type": "string",
+            "pattern": "(/[a-zA-Z0-9\\-_\\.])+",
+            "default": "now()",
+            "readOnly": true
+          }
+        }
+      },
+      "Milestones": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Milestone"
+        }
+      }
+    }
+  }
+}

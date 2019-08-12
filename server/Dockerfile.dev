@@ -1,0 +1,8 @@
+FROM node:8.16.0
+
+ENV NODE_ENV=development
+
+WORKDIR /app
+
+
+CMD npm run dev

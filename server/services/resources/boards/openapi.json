@@ -1,0 +1,49 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Board definition",
+    "version": "0.0.1",
+    "description": "Define the routes to access the board resources from the REST API.",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://api.flow.lh"
+    }
+  ],
+  "tags": [
+    {
+      "name": "type",
+      "description": "Rest Api (OPEN API V3)"
+    },
+    {
+      "name": "Project",
+      "description": "Flow"
+    }
+  ],
+  "entities": {
+    "board": {
+      "search": {
+        "query": [
+          {
+            "name": "limit",
+            "default": 100
+          },
+          {
+            "name": "offset",
+            "default": 0
+          },
+          {
+            "name": "keyIn"
+          },
+          {
+            "name": "keyEquals"
+          }
+        ]
+      }
+    }
+  }
+}

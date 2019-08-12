@@ -1,0 +1,286 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Tasks",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [{
+    "url": "http://petstore.swagger.io/"
+  }],
+  "paths": {
+    "/tasks/{id}": {
+      "get": {
+        "summary": "Get a task data",
+        "operationId": "Tasks.api.read",
+        "tags": ["tasks"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the task to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            },
+            "links": {
+              "inBoard": {
+                "operationId": "Boards.api.read",
+                "parameters": {
+                  "id": "$response.body#/boardId"
+                }
+              },
+              "creator": {
+                "operationId": "Users.api.read",
+                "parameters": {
+                  "id": "$response.body#/createdBy"
+                }
+              }
+            }
+          }
+        }
+
+      },
+      "put": {
+        "summary": "update a task",
+        "operationId": "Tasks.api.update",
+        "tags": ["tasks"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the task to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "delete a task",
+        "operationId": "Tasks.api.delete",
+        "tags": ["tasks"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the task to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            },
+            "links": {
+              "board": {
+                "operationId": "Boards.api.read",
+                "parameters": {
+                  "id": "$response.body#/boardId"
+                }
+              },
+              "user": {
+                "operationId": "Users.api.read",
+                "parameters": {
+                  "id": "$response.body#/createdBy"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tasks": {
+      "get": {
+        "summary": "List all tasks",
+        "operationId": "Tasks.api.search",
+        "tags": ["tasks"],
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "boardId",
+            "in": "query",
+            "description": "Get all task related to one board",
+            "schema": {
+              "type": "string"
+            }
+          }
+          {
+            "name": "createdBy",
+            "in": "query",
+            "description": "Get all task related to one board",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tasks"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a task",
+        "operationId": "Tasks.api.create",
+        "tags": ["tasks"],
+        "parameters": [
+          {
+            "name": "idLike",
+            "in": "query",
+            "description": "How many items to return at one time (max 100)",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Task"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Task": {
+        "type": "object",
+        "description": "Properties for each task",
+        "required" : ["title", "boardId", "createdBy"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "readOnly": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "boardId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "x-entity": "Boards:id"
+          },
+          "createdBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "x-entity": "Users:id"
+          },
+          "complexity": {
+            "type": "integer"
+          },
+          "dateOfCreation": {
+            "description": "The resource creation date",
+            "type": "string",
+            "pattern": "(/[a-zA-Z0-9\\-_\\.])+",
+            "default": "now()",
+            "readOnly": true
+          }
+        }
+      },
+      "Tasks": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Task"
+        }
+      }
+    }
+  }
+}

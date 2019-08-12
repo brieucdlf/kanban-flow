@@ -1,0 +1,101 @@
+version: "3.0"
+
+services:
+  nats:
+    image: nats
+    ports:
+      - 4222:4222
+    networks:
+      - stack_network
+
+  traefik:
+    image: traefik
+    command: --web --docker --docker.domain=docker.localhost --logLevel=INFO --docker.exposedbydefault=false
+    ports:
+      - "3000:80"
+      - "3001:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev/null:/traefik.toml
+    networks:
+      - stack_network
+
+  #######################Jaegger###########################
+  jaeger-collector:
+    container_name: jaeger-collector
+    image: jaegertracing/jaeger-collector
+    command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra", "--collector.zipkin.http-port=9411"]
+    ports:
+      - 14269:14269
+      - 14268:14268
+      - 14267:14267
+      - 9411:9411
+    restart: on-failure
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    depends_on:
+      - cassandra-schema
+    networks:
+      - stack_network
+    stop_grace_period: 1s
+
+  jaeger-query:
+    container_name: jaeger-query
+    image: jaegertracing/jaeger-query
+    command: ["--cassandra.keyspace=jaeger_v1_dc1", "--cassandra.servers=cassandra"]
+    ports:
+      - 16686:16686
+      - 16687
+    restart: on-failure
+    depends_on:
+      - cassandra-schema
+    environment:
+      - QUERY_BASE_PATH=/jaeger-ui
+    networks:
+      - stack_network
+    stop_grace_period: 1s
+
+  jaeger-agent:
+    container_name: jaeger-agent
+    image: jaegertracing/jaeger-agent
+    command: ["--collector.host-port=jaeger-collector:14267"]
+    ports:
+      - 5775:5775/udp
+      - 6831:6831/udp
+      - 6832:6832/udp
+      - 5778:5778
+    restart: on-failure
+    depends_on:
+      - jaeger-collector
+    networks:
+      - stack_network
+    stop_grace_period: 1s
+
+  cassandra:
+    container_name: cassandra
+    image: cassandra:3.9
+    networks:
+      - stack_network
+    stop_grace_period: 1s
+
+  cassandra-schema:
+    container_name: cassandra-schema
+    image: jaegertracing/jaeger-cassandra-schema
+    depends_on:
+      - cassandra
+    networks:
+      - stack_network
+    stop_grace_period: 1s
+
+  ###################MongoDB#######################
+
+  mongodb:
+    image: mongo:latest
+    ports:
+        - 27017:27017
+    networks:
+      - stack_network
+
+networks:
+  stack_network:
+    driver: bridge

@@ -1,0 +1,63 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Board definition",
+    "version": "0.0.1",
+    "description": "Define the routes to access the board resources from the REST API.",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://api.flow.lh"
+    }
+  ],
+  "tags": [
+    {
+      "name": "type",
+      "description": "Rest Api (OPEN API V3)"
+    },
+    {
+      "name": "Project",
+      "description": "Flow"
+    }
+  ],
+  "paths": {
+    "boards": {
+      "get": {
+        "operationId": "listBoards",
+        "summary": "List all boards available",
+        "tags": [
+          "flow", "boards"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "How many items to return at one time (max 100)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "How many items to  ignore before start returning items",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+        ],
+      },
+      "post": {}
+    },
+    "board/{boardId}": {
+      "get": {},
+      "put": {},
+      "patch": {},
+      "delete": {},
+    }
+  }
+}

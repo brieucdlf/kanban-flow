@@ -1,0 +1,36 @@
+{
+  "name": "open-api-factory",
+  "version": "0.0.1",
+  "description": "Factory to create OPEN API definitions and the handlers related for REST API services",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "moleculer",
+    "Open-Api",
+    "RestApi"
+  ],
+  "author": "Javier Venegas",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.5.4",
+    "body-parser": "^1.19.0",
+    "busboy": "^0.3.1",
+    "chalk": "^2.4.2",
+    "es6-error": "^4.1.1",
+    "etag": "^1.8.1",
+    "fresh": "^0.5.2",
+    "isstream": "^0.1.2",
+    "lodash": "^4.17.11",
+    "path-to-regexp": "^3.0.0",
+    "qs": "^6.7.0",
+    "serve-static": "^1.13.2"
+  },
+  "devDependencies": {
+    "prettyjson": "1.2.1"
+  },
+  "engines": {
+    "node": ">= 8.x.x"
+  }
+}

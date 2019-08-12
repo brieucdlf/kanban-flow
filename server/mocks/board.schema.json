@@ -1,0 +1,23 @@
+[
+  {
+    "name": "project-1",
+    "description": "description complete en markdown",
+    "columns": [
+      {
+        "name": "Backlog",
+        "max": 30
+      },
+      {
+        "name": "TOdo",
+        "max": 10
+      },
+      {
+        "name": "Doing",
+        "max": 3
+      },
+      {
+        "name": "Done"
+      }
+    ]
+  }
+]

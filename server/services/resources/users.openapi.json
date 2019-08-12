@@ -1,0 +1,240 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Users",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [{
+    "url": "http://petstore.swagger.io/"
+  }],
+  "paths": {
+    "/users/{id}": {
+      "get": {
+        "summary": "Get a user data",
+        "operationId": "Users.api.read",
+        "tags": ["users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the user to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            },
+            "links": {
+              "boardsCreatedBy": {
+                "description": "List the boards created by this user",
+                "operationId": "Boards.api.search",
+                "parameters": {
+                  "userId": "$response.body#/id"
+                }
+              },
+              "tasksCreatedBy": {
+                "description": "List the tasks created by this user",
+                "operationId": "Tasks.api.search",
+                "parameters": {
+                  "userId": "$response.body#/id"
+                }
+              }
+            }
+          }
+        }
+
+      },
+      "put": {
+        "summary": "update an user",
+        "operationId": "Users.api.update",
+        "tags": ["users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the user to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "delete an user",
+        "operationId": "Users.api.delete",
+        "tags": ["users"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the user to delete",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "List all users",
+        "operationId": "Users.api.search",
+        "tags": ["users"],
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "integer",
+              "default": 2
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Users"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a user",
+        "operationId": "Users.api.create",
+        "tags": ["users"],
+        "parameters": [
+          {
+            "name": "idLike",
+            "in": "query",
+            "description": "How many items to return at one time (max 100)",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "description": "Properties for each user",
+        "required" : ["username", "email"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "readOnly": true
+          },
+          "username": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9\\-_]+$"
+          },
+          "email": {
+            "type": "string"
+          },
+          "dateOfCreation": {
+            "description": "The resource creation date",
+            "type": "string",
+            "pattern": "(/[a-zA-Z0-9\\-_\\.])+",
+            "default": "now()",
+            "readOnly": true
+          }
+        }
+      },
+      "Users": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/User"
+        }
+      }
+    }
+  }
+}

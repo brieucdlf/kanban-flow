@@ -1,0 +1,29 @@
+version: "3.0"
+
+services:
+
+  api:
+    image: node:8.16.0
+    env_file: docker-compose.env
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: "npm run dev"
+    environment:
+      SERVICES: api,jaeger, www
+      PORT: 3000
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=api"
+      - "traefik.port=3000"
+      - "traefik.frontend.entryPoints=http"
+      - "traefik.frontend.rule=PathPrefix:/"
+    ports:
+      - "9229:9229"
+    networks:
+      - net_api_lib
+
+networks:
+  net_api_lib:
+    external:
+      name: server_stack_network

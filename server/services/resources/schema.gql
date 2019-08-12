@@ -1,0 +1,46 @@
+type Query {
+	board(id:String) Board
+	boards(pageSize:Int) [Board]
+	task(id:String) Task
+	tasks(pageSize:Int) [Task]
+	user(id:String) User
+	users(pageSize:Int) [User]
+}
+
+"""
+Properties for each board
+"""
+type Board {
+	id: String!,
+	name: String!,
+	title: String!,
+	tag: [String],
+	userId: String!,
+	self: String,
+	dateOfCreation: String
+}
+
+"""
+Properties for each task
+"""
+type Task {
+	id: String!,
+	title: String!,
+	comment: String,
+	tag: [String],
+	boardId: String!,
+	userId: String!,
+	self: String,
+	dateOfCreation: String
+}
+
+
+"""
+Properties for each user
+"""
+type User {
+	id: String!,
+	login: String!,
+	email: String!,
+	dateOfCreation: String
+}

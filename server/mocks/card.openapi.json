@@ -1,0 +1,24 @@
+[
+  {
+    "name": "urn-1",
+    "label": "Titre de la carte",
+    "description": "description en markdown",
+    "column": "",
+    "board": "",
+    "lead": "username",
+    "events": [
+      {
+        "date": "2019-05-23T13:27:11.240Z",
+        "action": "edit"
+      },
+      {
+        "date": "2019-05-23T13:27:11.240Z",
+        "action": "edit"
+      },
+      {
+        "date": "2019-05-23T13:27:11.240Z",
+        "action": "edit"
+      },
+    ]
+  }
+]
