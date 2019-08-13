@@ -43,14 +43,14 @@
                 "description": "List the boards created by this user",
                 "operationId": "Boards.api.search",
                 "parameters": {
-                  "userId": "$response.body#/id"
+                  "createdBy": "$response.body#/id"
                 }
               },
               "tasksCreatedBy": {
                 "description": "List the tasks created by this user",
                 "operationId": "Tasks.api.search",
                 "parameters": {
-                  "userId": "$response.body#/id"
+                  "createdBy": "$response.body#/id"
                 }
               }
             }

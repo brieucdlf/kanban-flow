@@ -233,10 +233,6 @@ module.exports = {
             if (!ctx.meta.isHttp && !ctx.params.body && ctx.params.input) {
               ctx.params.body = ctx.params.input;
             }
-            console.log("SSSS");
-            console.log(ctx.meta.isHttp);
-            console.log(ctx.params);
-            console.log("SSSS");
             if (!ctx.meta.isHttp && !ctx.params.params && ctx.params && Object.keys(ctx.params).length > 0) {
               ctx.params.params = ctx.params
             }
@@ -465,6 +461,7 @@ module.exports = {
                   }
                 }
                 else if (definition.name === ctx.settings.idField) {
+
                   dataValue = ctx.adapter.stringToObjectID(dataValue);
                   return { query: {_id: dataValue,}}
                 }
@@ -482,7 +479,7 @@ module.exports = {
         return function(params, ctx) {
           return Promise.all(fnList.map(fn => fn(params, ctx)))
           .then((results) => {
-            return results.reduce((acc, item) => {
+            const output= results.reduce((acc, item) => {
               const query = {};
               if (acc.query) { Object.assign(query, acc.query)}
               if (item && item.query) { Object.assign(query, item.query)}
@@ -594,9 +591,6 @@ module.exports = {
           query: `${queryName}${graphQL.params}: [${entityName.slice(0, -1)}]`
         },
         handler(ctx) {
-          console.log("555###########");
-          console.log(ctx.params);
-          console.log("555###########");
           return paramsFn(Object.assign({}, ctx.params, ctx.params.params, ctx.params.query), this)
           .then((params) => {
             return this.actions.list(params);
