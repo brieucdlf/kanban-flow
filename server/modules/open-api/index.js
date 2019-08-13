@@ -103,7 +103,7 @@ module.exports = {
           routes,
           graphQlDef,
           isDefault,
-          resource
+          resource,
         );
         const newService = this.broker.createService(newServiceDef);
       	this.logger.info(`[OPEN-API] New Data-centric api for ${entityName}`);
@@ -161,7 +161,7 @@ module.exports = {
       const bodyResponseFormat = this.settings.bodyResponseFormat;
       const idField = this.settings.idField || 'id';
       const extention = this.settings.extention;
-      const {settings, mixins} = resource;
+      const {settings, mixins, definition} = resource;
       mixins.push(dbProxy)
       return {
         name: entityName,
@@ -179,7 +179,8 @@ module.exports = {
           validator: new ZSchema({assumeAdditional: ["$ref"]}),
           idField,
           restApi: {
-            routes
+            routes,
+            openapi: definition
           },
         },
         hooks: {

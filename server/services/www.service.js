@@ -25,20 +25,38 @@ module.exports = {
 	],
   settings: {
 		routes: [{
-    path: "/custom",
+    path: "/openapi",
     aliases: {
-      "GET "(req, res) {
-          res.end('hello from custom handler')
-      }
+      "GET ": "www.openapi",
     }
   }]},
+	actions:{
+		openapi: {
+			handler(){
+				return this.openapi;
+			}
+		}
+	},
   events: {
     "$services.changed"() {
       const services = this.broker.registry.getServiceList({ withActions: true });
       const restApiServices = services.filter((service) => service.settings.restApi && Object.keys(service.settings.restApi).length > 0)
       if (restApiServices.length > 0) {
         restApiServices.forEach((serviceRoutes) => {
-          if (serviceRoutes.settings.restApi.routes) {
+          if (serviceRoutes.settings.restApi && serviceRoutes.settings.restApi.routes) {
+						console.log("######");
+						console.log(this.openapi);
+						console.log("######");
+						this.openapi = {
+							...this.openapi,
+							paths: Object.assign(this.openapi.paths,  serviceRoutes.settings.restApi.openapi.paths),
+							components:{
+								schemas: Object.assign(
+									this.openapi.components.schemas,
+									serviceRoutes.settings.restApi.openapi.components.schemas
+								),
+							}
+						}
 						const routeDef = serviceRoutes.settings.restApi.routes;
             this.routes = this.routes.concat([this.createRoute({
 							...routeDef,
@@ -54,5 +72,22 @@ module.exports = {
   },
   created() {
     const services = this.broker.registry.getServiceList({ withActions: true });
+		this.openapi = {
+			"openapi": "3.0.0",
+		  "info": {
+		    "version": "1.0.0",
+		    "title": "Kanban-flow",
+		    "license": {
+		      "name": "MIT"
+		    }
+		  },
+		  "servers": [{
+		    "url": "http://kanban-flow.io/"
+		  }],
+			paths: {},
+			components: {
+				schemas: {}
+			}
+		};
   }
 }
