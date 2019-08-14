@@ -218,6 +218,7 @@ module.exports = {
             .reduce((acc, key) => `${acc}${(acc.length>0)?',':''}<${links[key]}>; rel="${key}"`, "");
           },
           beforeHook: function (ctx) {
+            // console.log(Object.keys(ctx));
             ctx.meta.hydrateDepth = ctx.meta.hydrateDepth || 0;
             if (ctx.meta.$requestHeaders && ctx.meta.$requestHeaders['hydrate-depth']) {
               ctx.meta.hydrateDepth = parseInt(ctx.meta.$requestHeaders['hydrate-depth']);
@@ -227,6 +228,7 @@ module.exports = {
               id: ctx._id,
               level: ctx.level,
             }
+            ctx.meta.isGraphQl = (ctx.meta.graphQL) ? true : false;
             ctx.meta.isHttp = (ctx.meta.$requestHeaders) ? true : false;
             ctx.meta.$responseHeaders = {
               ["x-api-version"]: version,
@@ -237,6 +239,13 @@ module.exports = {
             if (!ctx.meta.isHttp && !ctx.params.params && ctx.params && Object.keys(ctx.params).length > 0) {
               ctx.params.params = ctx.params
             }
+            // console.log("##########",entityName, ctx.parentID);
+            // console.log("~~~~");
+            // console.log(ctx.meta);
+            // console.log("~~~~");
+            // console.log(Object.keys(ctx).join(','));
+            // console.log("##########");
+
           },
           bodyResponseFormat: (object) => {
             const output = Object.assign({}, object);
@@ -562,6 +571,7 @@ module.exports = {
         }
       })
       return function(broker, path, query, requestBody, responseBody, {hydrateDepth, ...metas}, ctx = null) {
+        if (metas.isGraphQl) {return Promise.resolve({});}
         return Promise.all(
           mapFn.map(function(item) {
             const params = item.fn(path, query, requestBody, responseBody, hydrateDepth);
@@ -594,7 +604,7 @@ module.exports = {
         handler(ctx) {
           return paramsFn(Object.assign({}, ctx.params, ctx.params.params, ctx.params.query), this)
           .then((params) => {
-            return this.actions.list(params);
+            return ctx.broker.call(`${ctx.service.name}.list`, params, {parentCtx:ctx.meta.$span});
           })
           .then((dataList) => {
             return Promise.all(dataList.rows.map((item) => {
@@ -632,11 +642,11 @@ module.exports = {
         },
         handler(ctx) {
           return paramsFn(Object.assign({}, ctx.params, ctx.params.params, ctx.params.query), this)
-          .then((params) => this.actions.get(params))
+          .then((params) => ctx.broker.call(`${ctx.service.name}.get`, params, {parentCtx:ctx.meta.$span}))
           .then((results) => {
             return pathLinkHydrater(ctx.broker, "", "", ctx.params.body, results, ctx.meta, ctx)
             .then((linksResult) => {
-              if (ctx.meta.hydrateDepth > 0 || !ctx.meta.isHttp) {
+              if (ctx.meta.hydrateDepth > 0 || !ctx.meta.isHttp || ctx.meta.isGraphQl) {
                 return Object.assign(results, linksResult)
               }
               const links = this.createLinksHeader(linksResult);

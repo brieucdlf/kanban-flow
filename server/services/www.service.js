@@ -4,6 +4,19 @@ const { ApolloService } = require("moleculer-apollo-server");
 
 module.exports = {
 	name: "www",
+	hooks: {
+		before: {
+			"rest": ["beforeHooks"]
+		}
+	},
+	methods: {
+		beforeHooks(ctx) {
+			console.log("BEFORE.WWW");
+			console.log(ctx.req.originalUrl);
+			console.log(ctx.req.method);
+			console.log("BEFORE.WWW");
+		}
+	},
   mixins: [
 		ApiGateway,
 		ApolloService({
@@ -15,7 +28,16 @@ module.exports = {
 			routeOptions: {
 				path: "/graphql",
 				cors: true,
-				mappingPolicy: "restrict"
+				mappingPolicy: "restrict",
+				onBeforeCall(ctx, route, req, res) {
+					// ctx.meta.$requestHeaders = req.headers;
+					ctx.meta.graphQL = true;
+					ctx.meta.$span = {
+						requestID: ctx.requestID,
+						id: ctx._id,
+            level: ctx.level,
+					};
+				}
 			},
 			// https://www.apollographql.com/docs/apollo-server/v2/api/apollo-server.html
 			serverOptions: {
@@ -44,9 +66,6 @@ module.exports = {
       if (restApiServices.length > 0) {
         restApiServices.forEach((serviceRoutes) => {
           if (serviceRoutes.settings.restApi && serviceRoutes.settings.restApi.routes) {
-						console.log("######");
-						console.log(this.openapi);
-						console.log("######");
 						this.openapi = {
 							...this.openapi,
 							paths: Object.assign(this.openapi.paths,  serviceRoutes.settings.restApi.openapi.paths),
