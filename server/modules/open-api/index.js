@@ -186,15 +186,12 @@ module.exports = {
         hooks: {
           before: {
             "api.create": ["beforeHook"],
-            "api.create-urlMaker": ["beforeHook"],
             "api.update": ["beforeHook"],
-            "api.update-urlMaker": ["beforeHook"],
             "api.read": ["beforeHook"],
             "api.read-urlMaker": ["beforeHook"],
             "api.search": ["beforeHook"],
             "api.search-urlMaker": ["beforeHook"],
             "api.delete": ["beforeHook"],
-            "api.delete-urlMaker": ["beforeHook"],
           },
         },
         actions,
@@ -363,7 +360,9 @@ module.exports = {
             params: graphQlParams
           }
         );
-        action[`api.${actionName}-urlMaker`] = {handler: function(ctx) {return linkBuilder(ctx.params)}};
+        if (method.toLowerCase() === "get") {
+          action[`api.${actionName}-urlMaker`] = {handler: function(ctx) {return linkBuilder(ctx.params)}};
+        }
         return action;
       })
       .reduce((acc, action) => Object.assign(acc, action), {});
