@@ -32,7 +32,21 @@ module.exports = {
 			{
 				definition: usersDefinition,
 				default: true,
-				mixins: [],
+				mixins: [{
+					actions: {
+						"api.auth": {
+							handler(ctx) {
+								return "tata";
+							}
+						}
+					}
+				}],
+				routes: [{
+					path: "/authentificate",
+					aliases: {
+						"POST ": "Users.api.auth",
+					}
+				}]
 			},
 		],
 	}

@@ -11,10 +11,6 @@ module.exports = {
 	},
 	methods: {
 		beforeHooks(ctx) {
-			console.log("BEFORE.WWW");
-			console.log(ctx.req.originalUrl);
-			console.log(ctx.req.method);
-			console.log("BEFORE.WWW");
 		}
 	},
   mixins: [
@@ -30,7 +26,8 @@ module.exports = {
 				cors: true,
 				mappingPolicy: "restrict",
 				onBeforeCall(ctx, route, req, res) {
-					// ctx.meta.$requestHeaders = req.headers;
+					ctx.meta.url = req.originalUrl;
+					ctx.meta.method = req.method;
 					ctx.meta.graphQL = true;
 					ctx.meta.$span = {
 						requestID: ctx.requestID,
@@ -65,6 +62,7 @@ module.exports = {
       const restApiServices = services.filter((service) => service.settings.restApi && Object.keys(service.settings.restApi).length > 0)
       if (restApiServices.length > 0) {
         restApiServices.forEach((serviceRoutes) => {
+
           if (serviceRoutes.settings.restApi && serviceRoutes.settings.restApi.routes) {
 						this.openapi = {
 							...this.openapi,
@@ -77,13 +75,30 @@ module.exports = {
 							}
 						}
 						const routeDef = serviceRoutes.settings.restApi.routes;
-            this.routes = this.routes.concat([this.createRoute({
-							...routeDef,
-			        onBeforeCall(ctx, route, req, res) {
-			            // Set request headers to context meta
-			          ctx.meta.$requestHeaders = req.headers;
-			        },
-						})])
+						if (Array.isArray(routeDef)) {
+							routeDef.forEach((routeItem) => {
+								this.routes = this.routes.concat([this.createRoute({
+									...routeItem,
+									onBeforeCall(ctx, route, req, res) {
+										// Set request headers to context meta
+										ctx.meta.$requestHeaders = req.headers;
+										ctx.meta.url = req.originalUrl;
+										ctx.meta.method = req.method;
+									},
+								})]);
+							});
+						}
+						else {
+							this.routes = this.routes.concat([this.createRoute({
+								...routeDef,
+								onBeforeCall(ctx, route, req, res) {
+									// Set request headers to context meta
+									ctx.meta.$requestHeaders = req.headers;
+									ctx.meta.url = req.originalUrl;
+									ctx.meta.method = req.method;
+								},
+							})]);
+						}
           }
         });
       }

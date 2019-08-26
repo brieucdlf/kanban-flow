@@ -206,7 +206,7 @@
       "User": {
         "type": "object",
         "description": "Properties for each user",
-        "required" : ["username", "email"],
+        "required" : ["username", "email", "password"],
         "properties": {
           "id": {
             "type": "string",
@@ -219,6 +219,10 @@
           },
           "email": {
             "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "writeOnly": true
           },
           "dateOfCreation": {
             "description": "The resource creation date",

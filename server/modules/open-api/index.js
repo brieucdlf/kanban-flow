@@ -161,7 +161,11 @@ module.exports = {
       const bodyResponseFormat = this.settings.bodyResponseFormat;
       const idField = this.settings.idField || 'id';
       const extention = this.settings.extention;
-      const {settings, mixins, definition} = resource;
+      const {settings, mixins, definition, ...args} = resource;
+      let aggregatedRoutes = routes;
+      if (resource.routes && Array.isArray(resource.routes)) {
+        aggregatedRoutes = [routes].concat(resource.routes);
+      }
       mixins.push(dbProxy)
       return {
         name: entityName,
@@ -179,7 +183,7 @@ module.exports = {
           validator: new ZSchema({assumeAdditional: ["$ref"]}),
           idField,
           restApi: {
-            routes,
+            routes: aggregatedRoutes,
             openapi: definition
           },
         },
