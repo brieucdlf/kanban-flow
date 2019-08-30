@@ -24,30 +24,45 @@ module.exports = {
 				default: true,
 				mixins: [],
 			},
-			{
-				definition: tasksDefinition,
-				default: true,
-				mixins: [],
-			},
-			{
-				definition: usersDefinition,
-				default: true,
-				mixins: [{
-					actions: {
-						"api.auth": {
-							handler(ctx) {
-								return "tata";
-							}
-						}
-					}
-				}],
-				routes: [{
-					path: "/authentificate",
-					aliases: {
-						"POST ": "Users.api.auth",
-					}
-				}]
-			},
+			// {
+			// 	definition: tasksDefinition,
+			// 	default: true,
+			// 	mixins: [],
+			// },
+			// {
+			// 	definition: usersDefinition,
+			// 	default: true,
+			// 	mixins: [{
+			// 		actions: {
+			// 			"api.auth": {
+			// 				handler(ctx) {
+			// 					console.log("###");
+			// 					console.log(ctx.params);
+			// 					const query = {query: {username: ctx.params.username, password: ctx.params.password}};
+			// 					console.log(query);
+			// 					console.log("###");
+			// 					return ctx.broker.call("Users.count", query)
+			// 					.then((userCount) => {
+			// 						if (userCount === 1) {
+			// 							return "utilisateur existe";
+			// 						}
+			// 						return "User inexistant";
+			// 					})
+			// 				}
+			// 			}
+			// 		}
+			// 	}],
+			// 	routes: [{
+			// 		path: "/authentificate",
+			// 		mappingPolicy: "restrict",
+	    //     bodyParsers: {
+	    //         json: true
+	    //     },
+			// 		aliases: {
+			// 			"POST ": "Users.api.auth",
+			// 		}
+			// 	}]
+			// },
 		],
 	}
 };

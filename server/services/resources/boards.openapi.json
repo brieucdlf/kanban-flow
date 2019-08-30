@@ -200,7 +200,7 @@
       "Board": {
         "type": "object",
         "description": "Properties for each board",
-        "required" : ["title", "createdBy"],
+        "required" : ["id", "title", "createdBy", "dateOfCreation"],
         "properties": {
           "id": {
             "type": "string",
@@ -225,7 +225,7 @@
             "description": "The resource creation date",
             "type": "string",
             "pattern": "(/[a-zA-Z0-9\\-_\\.])+",
-            "default": "now()",
+            "default": "$now()",
             "readOnly": true
           }
         }

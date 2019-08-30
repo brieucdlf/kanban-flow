@@ -5,6 +5,7 @@
  */
 
 "use strict";
+const ServiceDataCentric = require("./service");
 
 const chalk                   = require("chalk");
 const { match, deprecate }		= require("moleculer").Utils;
@@ -54,6 +55,14 @@ module.exports = {
 		if (Array.isArray(this.settings.resources)) {
       const definitions = this.settings.resources.map(resource => {
         const schemas = resource.definition.components.schemas;
+        ////////////////////
+        console.log("###NEW WF###");
+        const newService2 = new ServiceDataCentric(this.broker, resource);
+        newService2.start();
+        console.log(newService2.getDefintion());
+        console.log("###NEW WF###");
+        ////////////////////
+
         const entityName = resource.definition.info.title;
         const version = resource.definition.info.version;
         const isDefault = resource.default || false;
@@ -62,6 +71,7 @@ module.exports = {
         const dataModels = Object.keys(schemas)
           .map(key => this.createDataModel(key, schemas[key], null))
           .reduce((acc, model) => Object.assign(acc, model), {});
+
         const paths = resource.definition.paths;
         const {actions, entityHydrator} = Object.keys(paths)
           .map(key => this.createActions(entityName, paths[key], resource.definition.info, key))
@@ -249,6 +259,9 @@ module.exports = {
 
           },
           bodyResponseFormat: (object) => {
+            console.log("#####", entityName);
+            console.log(schemas);
+            console.log("#####");
             const output = Object.assign({}, object);
             // output.self = `/${entityName}/${object[idField]}${(extention)?`.${extention}`:''}`.toLowerCase();
             if (typeof bodyResponseFormat === "function") {
@@ -296,7 +309,7 @@ module.exports = {
             json: true
         },
         aliases: {
-          [`GET /open-api.json`]: `${entityName}.open-api`
+          [`GET /open-api`]: `${entityName}.open-api`
         }
       })
       ;

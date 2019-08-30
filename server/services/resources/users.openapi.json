@@ -146,7 +146,7 @@
             "description": "Sort the list by this property",
             "schema": {
               "type": "integer",
-              "default": 2
+              "default": 100
             }
           },
           {
