@@ -35,14 +35,40 @@ module.exports = {
 				mixins: [{
 					actions: {
 						"api.auth": {
+							params: {
+								body: {
+									type: "object",
+									props: {
+										password: {
+											type: "string",
+										},
+										username: {
+											type: "string",
+										}
+									}
+								}
+							},
 							handler(ctx) {
-								return "tata";
+								console.log('ctx.params', ctx.params);
+								const { body } = ctx.params;
+								return ctx.broker.call('Users.find', {query: {username: body.username, password: body.password}})
+									.then((users) => {
+										if(users.length === 1) {
+											return 'found You !';
+										}
+										return 'nope';
+									});
 							}
 						}
 					}
 				}],
 				routes: [{
 					path: "/authentificate",
+					mappingPolicy: 'restrict',
+					mergeParams: false,
+					bodyParsers: {
+						json: true,
+					},
 					aliases: {
 						"POST ": "Users.api.auth",
 					}
