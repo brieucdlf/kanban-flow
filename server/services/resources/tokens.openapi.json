@@ -97,7 +97,7 @@
       "Token": {
         "type": "object",
         "description": "Properties for each token",
-        "required" : ["username", "accessToken", "refreshToken","expirate"],
+        "required" : ["username"],
         "properties": {
           "id": {
             "type": "string",
