@@ -10,7 +10,7 @@ services:
       - ./:/app
     command: "npm run dev"
     environment:
-      SERVICES: api,jaeger, www
+      SERVICES: api,jaeger, www, oauth
       PORT: 3000
     labels:
       - "traefik.enable=true"
