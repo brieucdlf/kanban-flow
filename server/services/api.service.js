@@ -9,6 +9,7 @@ const ApiGateway = require("../modules/open-api");
 const tasksDefinition = require("./resources/tasks.openapi.json")
 const boardsDefinition = require("./resources/boards.openapi.json")
 const usersDefinition = require("./resources/users.openapi.json")
+const tokensDefinition = require("./resources/tokens.openapi.json")
 
 module.exports = {
 	name: "api-service",
@@ -26,6 +27,11 @@ module.exports = {
 			},
 			{
 				definition: tasksDefinition,
+				default: true,
+				mixins: [],
+			},
+			{
+				definition: tokensDefinition,
 				default: true,
 				mixins: [],
 			},

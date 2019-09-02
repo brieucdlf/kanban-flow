@@ -1,0 +1,138 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Tokens",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [{
+    "url": "http://petstore.swagger.io/"
+  }],
+  "paths": {
+    "/tokens/{id}": {
+      "get": {
+        "summary": "Get a user token",
+        "operationId": "Tokens.api.read",
+        "tags": ["tokens"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the user token to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+
+          }
+        }
+
+      },
+
+      "delete": {
+        "summary": "delete an user Token",
+        "operationId": "Tokens.api.delete",
+        "tags": ["token"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the user to delete",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tokens": {
+      "post": {
+        "summary": "Create an user Token",
+        "operationId": "Tokens.api.create",
+        "tags": ["token"],
+        "responses": {
+          "201": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Token": {
+        "type": "object",
+        "description": "Properties for each token",
+        "required" : ["username", "accessToken", "refreshToken","expirate"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "readOnly": true
+          },
+          "username": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string",
+            "readOnly": true,
+            "default": "access"
+          },
+          "refreshToken": {
+            "type": "string",
+            "readOnly": true,
+            "default": "refresh"
+          },
+          "expirate": {
+            "type": "string",
+            "readOnly": true,
+            "default": "1234"
+          },
+          "dateOfCreation": {
+            "description": "The resource creation date",
+            "type": "string",
+            "pattern": "(/[a-zA-Z0-9\\-_\\.])+",
+            "default": "now()",
+            "readOnly": true
+          }
+        }
+      }
+
+
+    }
+  }
+}
