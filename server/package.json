@@ -35,6 +35,7 @@
     "moleculer-jaeger": "^0.2.1",
     "moleculer-web": "^0.9.0-beta6",
     "nats": "^1.0.1",
+    "uuid-token-generator": "^1.0.0",
     "z-schema": "4.1.0"
   },
   "engines": {

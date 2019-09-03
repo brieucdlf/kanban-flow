@@ -4,6 +4,10 @@
 const DbService = require("moleculer-db");
 const MongoAdapter = require("moleculer-db-adapter-mongo");
 const JaegerService = require("moleculer-jaeger");
+const TokenGenerator = require('uuid-token-generator');
+
+const tokgen = new TokenGenerator(1024, TokenGenerator.BASE58); // Default is a 128-bit token encoded in base58
+
 
 const ApiGateway = require("../modules/open-api");
 const tokensDefinition = require("./resources/tokens.openapi.json")
@@ -22,8 +26,8 @@ module.exports = {
       now.setHours(now.getHours() + 2);
       return {
         ...params,
-        accessToken: params.username + Date.now(),
-        refreshToken: params.username + Date.now() * 2,
+        accessToken: tokgen.generate(),
+        refreshToken: tokgen.generate(),
         expirate: now.toISOString()
       };
     },
