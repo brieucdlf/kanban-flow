@@ -60,7 +60,7 @@ module.exports = {
 				}
 			}
 		},
-	routes: [{
+	routes: [{ 
 		path: "/authentificate",
 		mappingPolicy: "restrict",
 		mergeParams: false,
