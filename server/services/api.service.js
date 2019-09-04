@@ -9,6 +9,7 @@ const ApiGateway = require("../modules/open-api");
 const tasksDefinition = require("./resources/tasks.openapi.json")
 const boardsDefinition = require("./resources/boards.openapi.json")
 const usersDefinition = require("./resources/users.openapi.json")
+const aclDefinition=require("./resources/acl.openapi")
 
 
 module.exports = {
@@ -20,6 +21,11 @@ module.exports = {
 		dbProxy : DbService,
 		adapter: () => new MongoAdapter(process.env.MONGO_URI),
 		resources: [
+			{
+				definition: aclDefinition,
+				default: true,
+				mixins: [],
+			},
 			{
 				definition: boardsDefinition,
 				default: true,

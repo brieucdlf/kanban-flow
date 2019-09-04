@@ -1,0 +1,221 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "ACL",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [{
+    "url": "http://petstore.swagger.io/"
+  }],
+  "paths": {
+    "/acl/{id}": {
+      "get": {
+        "summary": "Get an acl entity",
+        "operationId": "Acl.api.read",
+        "tags": ["acl"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the acl to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acl"
+                }
+              }
+            },
+            "links": {
+              "containsUser": {
+                "operationId": "Users.api.read",
+                "parameters": {
+                  "userName": "$response.body#/username"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "update an Acl",
+        "operationId": "Acl.api.update",
+        "tags": ["acl"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the acl to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acl"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "delete an Acl",
+        "operationId": "Acl.api.delete",
+        "tags": ["acl"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The id (URI) of the acl to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{24}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acl"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/acl": {
+      "get": {
+        "summary": "List all acl entities",
+        "operationId": "Acl.api.search",
+        "tags": ["acl"],
+        "parameters": [
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Sort the list by this property",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acl"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create an acl",
+        "operationId": "Acl.api.create",
+        "tags": ["acl"],
+        "responses": {
+          "201": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Acl"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Acl": {
+        "type": "object",
+        "description": "Properties for each ACL",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "readOnly": true
+          },
+          "links": {
+            "type": "object",
+            "properties": {
+              "containsUser": {
+                "type": "string"
+              }
+            }
+          },
+          "scopes": {
+            "description": "The list of the user rights",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          }
+        }
+      },
+      "Acls": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Acl"
+        }
+      }
+    }
+  }
+}
