@@ -10,13 +10,17 @@ module.exports = {
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "sourceType": "module"
+        "sourceType": "module",
+        "parser":"babel:eslint",
+        "ecmaVersion": 6,
+        "ecmaFeatures": {
+            "experimentalObjectRestSpread": true
+        }
     },
     "rules": {
         "indent": [
-            "warn",
-            "tab",
-            { "SwitchCase": 1 }
+           "error",
+          2
         ],
         "quotes": [
             "warn",
