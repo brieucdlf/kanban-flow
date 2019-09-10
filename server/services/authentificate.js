@@ -55,7 +55,7 @@ module.exports = {
 					return ctx.broker.call("Users.find", {query: {username: body.username, password: body.password}})
 						.then((users) => {
 							if (users.length === 1) {
-								return ctx.broker.call("Tokens.api.create", {body: {username: body.username}});
+								return ctx.broker.call("Tokens.api.create", {body: {username: body.username}})
 							}
 							throw new MoleculerError("Auth Error", 404, "NOT_FOUND");
 						});

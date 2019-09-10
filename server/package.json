@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "graphql": "^14.4.2",
+    "jsonwebtoken": "^8.5.1",
     "moleculer": "^0.13.9",
     "moleculer-apollo-server": "github:moleculerjs/moleculer-apollo-server",
     "moleculer-db": "^0.8.2",

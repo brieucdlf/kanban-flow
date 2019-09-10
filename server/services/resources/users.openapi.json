@@ -218,7 +218,8 @@
             "pattern": "^[a-zA-Z0-9\\-_]+$"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "password": {
             "type": "string",

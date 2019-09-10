@@ -59,3 +59,12 @@ typings/
 
 # next.js build output
 .next
+
+# permission
+services/private.pem
+services/public.pem
+
+# lock
+yarn.lock
+modules/open-api/yarn.lock
+modules/open-api/package-lock.json
