@@ -4,6 +4,10 @@
 const Service = require("moleculer").Service;
 const DataModel = require("./dataModel");
 
+const GqlTypes = require("./helpers/graphQlTypeGenerator");
+const FvSchema = require("./helpers/fastest-validator-schema");
+
+
 class ServiceDataCentric extends Service {
   constructor(broker, {definition}) {
     super(broker);
@@ -92,58 +96,74 @@ class ServiceDataCentric extends Service {
   }
 
   getSchemaByPath(ref) {
-    const schemaList = this.definition.settings.restApi.openapi.components.schemas;
-    return ref.replace("#/components/schemas/", "").split('/')
-    .reduce(
-      (acc, pathKey) => {
-        // if (schemaList[pathKey]) {
-        //   return (schemaList[pathKey]);
-        // }
-        // return {};
-        return (schemaList[pathKey]) ? schemaList[pathKey] : {};
-      }
-      , schemaList
-    );
   }
   processSchemas(schemaList) {
     Object.keys(schemaList)
-    .forEach((schemaKey) => {
-      const schema = schemaList[schemaKey];
-      if (schema.type === "object") {
-        Object.keys(schema.properties)
-        .forEach((propertyKey) => {
-          const property = schema.properties[propertyKey];
-          if (property.$ref) {
+    .sort((itemA, itemB) => {
+      const schemaA = JSON.stringify(schemaList[itemA]);
+      const schemaB = JSON.stringify(schemaList[itemB]);
+      if (!/\$ref/.test(schemaA)) {
+        if (!/\$ref/.test(schemaB)) {
+          return 0;
+        } else {
+          return -1;
+        }
+      }
+      else {
+        if (!/\$ref/.test(schemaB)) {
+          return 1;
+        } else {
+          const regxpA = new RegExp(`${itemA}`)
+          const regxpB = new RegExp(`${itemB}`)
+          if (regxpA.test(schemaB)) {
+            return -1;
+          } else if (regxpB.test(schemaA)) {
+            return 1;
           }
-        })
+          return 0;
+        }
       }
-      else if (schema.type === "array") {
-        const items = schema.items;
-        schema.items = (schema.items.$ref)
-          ? this.getSchemaByPath(items.$ref)
-          : schema.items;
-      }
-      this.addSchema(schemaKey, schema)
+    })
+    .forEach((schemaKey) => {
+      this.addSchema(schemaKey, schemaList[schemaKey])
     })
   }
   addSchema(name, schema) {
-    this.schemas[name] = new DataModel(schema);
-    this.addMethod(
-      `${name}SanitizeOutput`,
-      (data) => this.schemas[name].sanitizeOutput(data)
+    console.log("~~~~", name);
+    let dataModels = {};
+    const refs = JSON.stringify(schema)
+    .match(/"\$ref"\s*:\s*"#\/components\/schemas\/([a-zA-Z0-9\-_]+)"/g)
+    if (refs) {
+      dataModels = refs
+      .reduce((acc, item) => {
+        const refNameMatchs = item.replace(/"/g, "").match(/([a-zA-Z0-9\-_]+)$/g);
+        if (refNameMatchs) {
+          const refName = refNameMatchs.shift();
+          if (this.schemas[refName]) {
+            return Object.assign(acc, {[refName]: this.schemas[refName]});
+          }
+        }
+        return acc;
+      }, {});
+    }
+    console.log("++");
+    console.log(schema);
+    this.schemas[name] = new DataModel(
+      name,
+      schema,
+      dataModels,
+      [
+        {key: "inputValidation", regexp: /all|write/, builder: new FvSchema(name)},
+        {key: "outputValidation", regexp: /all|read/, builder: new FvSchema(name)},
+        {key: "graphQLTypes", regexp: /all|read/, builder: new GqlTypes(name)},
+      ]
     );
-    this.addMethod(
-      `${name}SanitizeInput`,
-      (data) => this.schemas[name].sanitizeInput(data)
-    );
+    console.log("~~~~");
   }
   deleteSchema(name) {
     if (this.schemas[name]) {
       delete this.schemas[name];
     }
-  }
-  getDataModel(name) {
-    return this.schemas[name];
   }
 
   start() {

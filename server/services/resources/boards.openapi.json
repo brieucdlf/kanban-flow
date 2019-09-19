@@ -197,6 +197,12 @@
   },
   "components": {
     "schemas": {
+      "InputBoard": {
+        "oneOf": [
+          {"$ref": "#/components/schemas/Board"},
+          {"$ref": "#/components/schemas/Boards"}
+        ]
+      },
       "Board": {
         "type": "object",
         "description": "Properties for each board",
