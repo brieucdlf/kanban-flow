@@ -3,7 +3,6 @@ class FvSchema {
     this.innerSchema = {};
     this.name = name;
     this.currentPath = this.innerSchema;
-    this.requiredPaths = {};
   }
   addProperty(schema, path) {
     const data = this.parse(schema);

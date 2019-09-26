@@ -54,71 +54,72 @@ module.exports = {
     // TODO définir ici ce qu'on fait
 		if (Array.isArray(this.settings.resources)) {
       const definitions = this.settings.resources.map(resource => {
-        const schemas = resource.definition.components.schemas;
+        // const schemas = resource.definition.components.schemas;
         ////////////////////
         console.log("###NEW WF###");
         const newService2 = new ServiceDataCentric(this.broker, resource);
         newService2.start();
         console.log(newService2.getDefintion());
         console.log("###NEW WF###");
+        // const newService = this.broker.createService(newServiceDef);
         ////////////////////
 
-        const entityName = resource.definition.info.title;
-        const version = resource.definition.info.version;
-        const isDefault = resource.default || false;
-        const modelCallbacks = resource.modelCallbacks;
-
-        const dataModels = Object.keys(schemas)
-          .map(key => this.createDataModel(key, schemas[key], null))
-          .reduce((acc, model) => Object.assign(acc, model), {});
-
-        const paths = resource.definition.paths;
-        const {actions, entityHydrator} = Object.keys(paths)
-          .map(key => this.createActions(entityName, paths[key], resource.definition.info, key))
-          .reduce((acc, action) => {
-            if (action.entityHydrator) {
-              acc.entityHydrator = action.entityHydrator;
-              delete action.entityHydrator;
-            }
-            return {
-              ...acc,
-              actions: Object.assign(acc.actions, action)
-            }
-          }, {
-            actions: {},
-            entityHydrator: null
-          });
-        actions["open-api"] = () => resource;
-        if (entityHydrator) {
-          dataModels.entityHydrator = entityHydrator;
-        }
-        const graphQlResolvers = this.createGraphQLResolvers(paths);
-        const graphQlType = this.createGraphQLTypeDefinition(schemas, graphQlResolvers);
-        const graphQlDef = {
-          type: graphQlType.type,
-          input: graphQlType.input,
-        }
-        if (graphQlType.entity.length > 0) {
-          graphQlDef.resolvers = {[graphQlType.entity]: graphQlResolvers}
-        }
-
-        const basePath = this.minimalPath(Object.keys(paths))
-        const routes = this.routesDefinition(entityName, paths, basePath, version);
-        const newServiceDef = this.createService(
-          entityName,
-          version,
-          actions,
-          dataModels,
-          schemas,
-          routes,
-          graphQlDef,
-          isDefault,
-          resource,
-        );
-        const newService = this.broker.createService(newServiceDef);
-      	this.logger.info(`[OPEN-API] New Data-centric api for ${entityName}`);
-
-        return newService;
+        // const entityName = resource.definition.info.title;
+        // const version = resource.definition.info.version;
+        // const isDefault = resource.default || false;
+        // const modelCallbacks = resource.modelCallbacks;
+        //
+        // const dataModels = Object.keys(schemas)
+        //   .map(key => this.createDataModel(key, schemas[key], null))
+        //   .reduce((acc, model) => Object.assign(acc, model), {});
+        //
+        // const paths = resource.definition.paths;
+        // const {actions, entityHydrator} = Object.keys(paths)
+        //   .map(key => this.createActions(entityName, paths[key], resource.definition.info, key))
+        //   .reduce((acc, action) => {
+        //     if (action.entityHydrator) {
+        //       acc.entityHydrator = action.entityHydrator;
+        //       delete action.entityHydrator;
+        //     }
+        //     return {
+        //       ...acc,
+        //       actions: Object.assign(acc.actions, action)
+        //     }
+        //   }, {
+        //     actions: {},
+        //     entityHydrator: null
+        //   });
+        // actions["open-api"] = () => resource;
+        // if (entityHydrator) {
+        //   dataModels.entityHydrator = entityHydrator;
+        // }
+        // const graphQlResolvers = this.createGraphQLResolvers(paths);
+        // const graphQlType = this.createGraphQLTypeDefinition(schemas, graphQlResolvers);
+        // const graphQlDef = {
+        //   type: graphQlType.type,
+        //   input: graphQlType.input,
+        // }
+        // if (graphQlType.entity.length > 0) {
+        //   graphQlDef.resolvers = {[graphQlType.entity]: graphQlResolvers}
+        // }
+        //
+        // const basePath = this.minimalPath(Object.keys(paths))
+        // const routes = this.routesDefinition(entityName, paths, basePath, version);
+        // const newServiceDef = this.createService(
+        //   entityName,
+        //   version,
+        //   actions,
+        //   dataModels,
+        //   schemas,
+        //   routes,
+        //   graphQlDef,
+        //   isDefault,
+        //   resource,
+        // );
+        // const newService = this.broker.createService(newServiceDef);
+      	// this.logger.info(`[OPEN-API] New Data-centric api for ${entityName}`);
+        //
+        // return newService;
       });
     }
   },

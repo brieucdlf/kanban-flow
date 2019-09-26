@@ -4,17 +4,21 @@
 const Service = require("moleculer").Service;
 const DataModel = require("./dataModel");
 
-const GqlTypes = require("./helpers/graphQlTypeGenerator");
+const GQLSchema = require("./helpers/graphQlTypeGenerator");
 const FvSchema = require("./helpers/fastest-validator-schema");
+
+const actionFactories = require("./helpers/actionFactory");
 
 
 class ServiceDataCentric extends Service {
-  constructor(broker, {definition}) {
+  constructor(broker, {definition, mixins, adapter, ...args}) {
     super(broker);
     this.schemas = {};
     this.definition = {
-      name: (definition.info.title)?`test${definition.info.title}`:`newService-${Date.now()}`,
+      name: `${definition.info.title}`,
       version: definition.info.version,
+      collection: definition.info.title,
+      adapter: adapter(),
       actions: {
         inputSan: {
           handler(ctx) {
@@ -27,6 +31,7 @@ class ServiceDataCentric extends Service {
       methods: {
         beforeHook: this.beforeHook,
       },
+      mixins,
       hooks: {
         before: {
           "api.create": ["beforeHook"],
@@ -39,13 +44,21 @@ class ServiceDataCentric extends Service {
         },
       },
       settings: {
+        $noVersionPrefix: true,
+        idField: 'id',
         restApi: {
           routes: [],
           openapi: definition,
         }
       },
+      ...args,
     };
+    this.basePath = null;
+    this.innerAliases = {
+      [`GET /open-api`]: `${this.definition.name}.open-api`
+    }
     this.processSchemas(definition.components.schemas)
+    this.processPaths(definition.paths);
   }
 
   /*******/
@@ -62,7 +75,7 @@ class ServiceDataCentric extends Service {
     ctx.meta.isGraphQl = (ctx.meta.graphQL) ? true : false;
     ctx.meta.isHttp = (ctx.meta.$requestHeaders) ? true : false;
     ctx.meta.$responseHeaders = {
-      ["x-api-version"]: version,
+      ["x-api-version"]: ctx.service.version,
     };
     if (!ctx.meta.isHttp && !ctx.params.body && ctx.params.input) {
       ctx.params.body = ctx.params.input;
@@ -72,9 +85,69 @@ class ServiceDataCentric extends Service {
     }
   }
   /*******/
+  processPaths(pathList) {
+    const pathsTmp = [];
+    Object.keys(pathList)
+    .forEach((path) => {
+      const actionList = pathList[path];
+      Object.keys(actionList)
+      .forEach((method) => {
+        const action = actionList[method];
+        const actionName = action.operationId.replace(`${this.definition.name}.`, '');
+        pathsTmp.push(this.definePath(path, method, actionName));
+        console.log("+++++++");
+        console.log(path, method);
+        this.addAction(actionName, method)
+        this.parseParams(actionName, action.parameters);
+        console.log("+++++++");
+      })
+    });
+    pathsTmp.forEach(({method, path, action}) => {
+      console.log("####", `${method} ${path.replace(this.basePath, '')}`, action);
+      this.innerAliases[`${method} ${path.replace(this.basePath, '')}`] = action;
+    })
+    this.addPathsInsideDefinition();
+  }
+  addPathsInsideDefinition() {
+    this.definition.settings.restApi.routes.push({
+      path: this.basePath,
+      mappingPolicy: "restrict",
+      mergeParams: false,
+      bodyParsers: {
+          json: true
+      },
+      aliases: this.innerAliases,
+    });
+  }
+  definePath(path, method, actionName) {
+    // this.innerAliases[`${method.toUpperCase()} ${path}`] = `${this.definition.name}.${actionName}`;
+    this.setMinimalBasepath(path);
+    return {
+      method: method.toUpperCase(),
+      path: path.replace(/{([a-z0-9]+)}/g, ":$1"),
+      action: `${this.definition.name}.${actionName}`,
+    }
+  }
+  setMinimalBasepath(path) {
+    if(this.basePath) {
+      this.basePath = this.basePath.split('')
+      .filter((item, i) => {
+        if (path[i]) {
+          return path[i] === item;
+        }
+        return false;
+      })
+      .join('');
+    }
+    else {
+      this.basePath = path;
+    }
+  }
 
-  addAction(name, fn) {
-    this.definition.actions[name] = fn;
+
+  addAction(name, method) {
+    const definition = actionFactories.createAction(name, method);
+    this.definition.actions[name] = definition;
   }
   deleteAction(name) {
     if (this.definition.actions[name]) {
@@ -129,7 +202,6 @@ class ServiceDataCentric extends Service {
     })
   }
   addSchema(name, schema) {
-    console.log("~~~~", name);
     let dataModels = {};
     const refs = JSON.stringify(schema)
     .match(/"\$ref"\s*:\s*"#\/components\/schemas\/([a-zA-Z0-9\-_]+)"/g)
@@ -146,8 +218,6 @@ class ServiceDataCentric extends Service {
         return acc;
       }, {});
     }
-    console.log("++");
-    console.log(schema);
     this.schemas[name] = new DataModel(
       name,
       schema,
@@ -155,10 +225,10 @@ class ServiceDataCentric extends Service {
       [
         {key: "inputValidation", regexp: /all|write/, builder: new FvSchema(name)},
         {key: "outputValidation", regexp: /all|read/, builder: new FvSchema(name)},
-        {key: "graphQLTypes", regexp: /all|read/, builder: new GqlTypes(name)},
+        {key: "graphQLTypes", regexp: /all|read/, builder: new GQLSchema(name)},
+        {key: "graphQLInput", regexp: /all|write/, builder: new GQLSchema(name, "Input")},
       ]
     );
-    console.log("~~~~");
   }
   deleteSchema(name) {
     if (this.schemas[name]) {
@@ -166,8 +236,15 @@ class ServiceDataCentric extends Service {
     }
   }
 
+  parseParams(paramsDefintions, actionName) {
+    console.log("parseParams");
+  }
+
   start() {
     this.parseServiceSchema(this.definition);
+    console.log("@@@@@@@@@@@@@@@@@");
+    console.log(this.definition);
+    console.log("@@@@@@@@@@@@@@@@@");
   }
   getDefintion() {
     return this.definition;

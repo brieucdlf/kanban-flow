@@ -16,13 +16,12 @@ module.exports = {
 	metrics: true,
 	// More info about settings: https://moleculer.services/docs/0.13/moleculer-web.html
 	settings: {
-		dbProxy : DbService,
-		adapter: () => new MongoAdapter(process.env.MONGO_URI),
 		resources: [
 			{
 				definition: boardsDefinition,
 				default: true,
-				mixins: [],
+				mixins: [DbService],
+				adapter: () => new MongoAdapter(process.env.MONGO_URI),
 			},
 			// {
 			// 	definition: tasksDefinition,

@@ -3,15 +3,9 @@ class DataModel {
     this.name = name;
     this.schema = Object.assign({key: name}, schema);
     this.dataModels = dataModels;
-
     this.middle = schemaBuilders
-
     this.setRequiredInsideProperties();
     this.resolve(name, this.schema);
-    this.middle.forEach(({key, builder}) => {
-      console.log("@@", key);
-      console.log(builder.serialize());
-    })
   }
 
   setRequiredInsideProperties() {
@@ -47,7 +41,6 @@ class DataModel {
         throw new Error();
       }
     }
-
     //on vérifie si le schema n'est pas une référence locale
     if (schema.$ref) {
       const refName = schema.$ref.replace("#/components/schemas/", "");
@@ -65,6 +58,7 @@ class DataModel {
         builder.addProperty(schema, path)
       }
     })
+
     switch(schema.type) {
       case "object":
         Object.keys(schema.properties)

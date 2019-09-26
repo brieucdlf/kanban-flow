@@ -1,19 +1,16 @@
-class FvSchema {
-  constructor(name) {
+class GQLSchema {
+  constructor(name, type="Type") {
+    this.gqlType = type;
     this.innerSchema = [];
     this.name = name;
     this.currentPath = this.innerSchema;
 
     this.innerRefs = {}
-    this.requiredPaths = {};
   }
   addProperty(schema, path) {
     const destPath = path.replace(`.${schema.key}`, '');
     if (this.innerRefs[destPath]) {
-      console.log("create de la ref", this.innerRefs[path], );
-      console.log(this.innerSchema[this.innerRefs[path]])
-      console.log("###");
-      const data = this.parse(Object.assign(schema, {key:null}), path);
+      const data = this.parse(Object.assign({}, schema, {key:null}), path);
       const index = this.innerRefs[destPath];
       this.innerSchema[index] = this.innerSchema[index].replace(`%${destPath}%`, data)
       delete this.innerRefs[path];
@@ -30,13 +27,12 @@ class FvSchema {
     return;
   }
   setRefProperty(ref, path) {
-    // const destPath = path.replace(`.${schema.key}`, '');
-    // const curPath = this.getSchemaByPath(destPath);
-    // if (ref.key) {
-    //   curPath[ref.key] = ref;
-    // } else {
-    //   curPath = ref;
-    // }
+    const destPath = path.replace(`.${ref.key}`, '');
+    if (destPath in this.innerRefs) {
+      const index = this.innerRefs[destPath];
+      this.innerSchema[index] = this.innerSchema[index].replace(`%${destPath}%`, ref.type);
+      delete this.innerRefs[destPath];
+    }
   }
   getSchemaByPath(path) {
     const out = path
@@ -64,13 +60,13 @@ class FvSchema {
     , this.innerSchema)
   }
   getRef() {
-    return this.name;
+    return {type: this.name};
   }
   getSchema() {
     return {};
   }
   serialize() {
-    return `Type ${this.name}{\r\n  ${this.innerSchema.join("\r\n  ")}\r\n}\r\n`;
+    return `${this.gqlType} ${this.name}{\r\n  ${this.innerSchema.join("\r\n  ")}\r\n}\r\n`;
   }
 
   parse({type, key, required, ...args}, path) {
@@ -85,10 +81,10 @@ class FvSchema {
         return `${(key)?`${key}: `:""}: Integer${isRequired}`;
       case "array":
         this.innerRefs[path] = "toSet";
-        return `${(key)?`${key}: `:""}: [%${path}%]${isRequired}`
+        return `${(key)?`${key}: `:""}[%${path}%]${isRequired}`
       return;
     }
     return ;
   }
 }
-module.exports = FvSchema;
+module.exports = GQLSchema;
