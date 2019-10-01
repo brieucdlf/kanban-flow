@@ -25,7 +25,7 @@ class FvSchema {
   }
   getSchemaByPath(path) {
     const out = path
-    .replace(/properties/g, "props")
+    // .replace(/properties/g, "props")
     .split(".")
     .reduce((object, item)=>{
       if (object[item]) {
@@ -49,31 +49,29 @@ class FvSchema {
     , this.innerSchema)
   }
   getRef() {
-    return this.innerSchema[this.name].props;
+    return this.innerSchema[this.name];
   }
   serialize() {
     return this.innerSchema[this.name];
   }
 
-  parse({type, required, ...schema}) {
-    const optional = (required)?false: true;
+  parse({type, ...schema}) {
     switch(type){
       case "object":
-        return { type: "object", props: {}, optional, };
+        return { type: "object", properties: {}, };
       case "string":
         const {pattern} = schema;
-        const output = { type: "string", optional, }
+        const output = { type: "string", }
         if (pattern) {
           output.pattern = pattern;
         }
         return output;
       case "integer":
-        return { type: "integer", optional, };
+        return { type: "integer", };
       case "array":
         return {
           type: "array",
           items: {},
-          optional,
         }
       return;
     }

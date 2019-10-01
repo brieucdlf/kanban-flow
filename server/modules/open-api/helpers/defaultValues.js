@@ -1,7 +1,6 @@
-class GQLSchema {
+class DefaultValues {
   constructor(name, type="Type") {
-    this.gqlType = type;
-    this.innerSchema = [];
+    this.fn = [];
     this.name = name;
     this.currentPath = this.innerSchema;
 
@@ -33,6 +32,19 @@ class GQLSchema {
       this.innerSchema[index] = this.innerSchema[index].replace(`%${destPath}%`, ref.type);
       delete this.innerRefs[destPath];
     }
+  }
+  getSchemaByPath(path) {
+    const out = path
+    .replace(/properties/g, "props")
+    .split(".")
+    .reduce((object, item)=>{
+      if (object[item]) {
+        return object[item];
+      }
+      return 0;
+    }
+    , 0);
+    return out;
   }
   setSchemaByPath(key, schemaObject) {
     key.split(".")

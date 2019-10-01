@@ -22,6 +22,11 @@ module.exports = {
 				default: true,
 				mixins: [DbService],
 				adapter: () => new MongoAdapter(process.env.MONGO_URI),
+				bodyRequestFormat: (ctx) => {
+					console.log("bodyRequestFormat~~~");
+					console.log(ctx.params);
+					console.log("~~~bodyRequestFormat");
+				}
 			},
 			// {
 			// 	definition: tasksDefinition,

@@ -6,12 +6,18 @@ const DataModel = require("./dataModel");
 
 const GQLSchema = require("./helpers/graphQlTypeGenerator");
 const FvSchema = require("./helpers/fastest-validator-schema");
+const FilterJSON = require("./helpers/filterJSON");
 
 const actionFactories = require("./helpers/actionFactory");
+const {parseParameter} = require("./helpers/params");
+
+const filterJSON = require("./middlewares/filter")
 
 
 class ServiceDataCentric extends Service {
-  constructor(broker, {definition, mixins, adapter, ...args}) {
+  constructor(broker, {definition, mixins, adapter, bodyRequestFormat, bodyResponseFormat, ...args}) {
+    const requestFormat  = (bodyRequestFormat)  ? bodyRequestFormat  : (ctx) => {};
+    const responseFormat = (bodyResponseFormat) ? bodyResponseFormat : (ctx) => {};
     super(broker);
     this.schemas = {};
     this.definition = {
@@ -30,17 +36,26 @@ class ServiceDataCentric extends Service {
       },
       methods: {
         beforeHook: this.beforeHook,
+        requestFormat,
+        responseFormat,
       },
       mixins,
       hooks: {
         before: {
-          "api.create": ["beforeHook"],
-          "api.update": ["beforeHook"],
+          "api.create": ["beforeHook", "requestFormat"],
+          "api.update": ["beforeHook", "requestFormat"],
           "api.read": ["beforeHook"],
           "api.read-urlMaker": ["beforeHook"],
           "api.search": ["beforeHook"],
           "api.search-urlMaker": ["beforeHook"],
           "api.delete": ["beforeHook"],
+        },
+        after: {
+          "api.create": [],
+          "api.update": [],
+          "api.read"  : [],
+          "api.search": [],
+          "api.delete": [],
         },
       },
       settings: {
@@ -59,6 +74,10 @@ class ServiceDataCentric extends Service {
     }
     this.processSchemas(definition.components.schemas)
     this.processPaths(definition.paths);
+    this.schemas = null;
+  }
+  parseInput(parseFn) {
+
   }
 
   /*******/
@@ -99,14 +118,28 @@ class ServiceDataCentric extends Service {
         console.log(path, method);
         this.addAction(actionName, method)
         this.parseParams(actionName, action.parameters);
+        if (this.hasRequestBody(action)) {
+          const inputModel = this.getSchemaByKey(
+            action.requestBody.content["application/json"].schema,
+            "inputValidation"
+          );
+          this.injectValidationModel(actionName, {body: {...inputModel,  strict: true}});
+        }
+        this.handleResponse(action.responses, actionName)
         console.log("+++++++");
       })
     });
     pathsTmp.forEach(({method, path, action}) => {
-      console.log("####", `${method} ${path.replace(this.basePath, '')}`, action);
       this.innerAliases[`${method} ${path.replace(this.basePath, '')}`] = action;
     })
     this.addPathsInsideDefinition();
+  }
+  hasRequestBody(action) {
+    return (
+      action.requestBody &&
+      action.requestBody.content["application/json"] &&
+      action.requestBody.content["application/json"].schema
+    );
   }
   addPathsInsideDefinition() {
     this.definition.settings.restApi.routes.push({
@@ -120,7 +153,6 @@ class ServiceDataCentric extends Service {
     });
   }
   definePath(path, method, actionName) {
-    // this.innerAliases[`${method.toUpperCase()} ${path}`] = `${this.definition.name}.${actionName}`;
     this.setMinimalBasepath(path);
     return {
       method: method.toUpperCase(),
@@ -143,7 +175,18 @@ class ServiceDataCentric extends Service {
       this.basePath = path;
     }
   }
-
+  injectValidationModel(actionName, model) {
+    const action = this.definition.actions[actionName];
+    action.params = Object.assign({}, action.params, model);
+  }
+  handleResponse(responses, actionName) {
+    const responseCode = Object.keys(responses)[0];
+    const responseSchema = responses[responseCode].content["application/json"].schema;
+    const model = this.getSchemaByKey(responseSchema, "outputFilter")
+    this.definition.hooks.after[actionName].push(function(ctx, res) {
+      return filterJSON(model, res);
+    });
+  }
 
   addAction(name, method) {
     const definition = actionFactories.createAction(name, method);
@@ -227,6 +270,7 @@ class ServiceDataCentric extends Service {
         {key: "outputValidation", regexp: /all|read/, builder: new FvSchema(name)},
         {key: "graphQLTypes", regexp: /all|read/, builder: new GQLSchema(name)},
         {key: "graphQLInput", regexp: /all|write/, builder: new GQLSchema(name, "Input")},
+        {key: "outputFilter", regexp: /all|read/, builder: new FilterJSON(name)}
       ]
     );
   }
@@ -235,16 +279,46 @@ class ServiceDataCentric extends Service {
       delete this.schemas[name];
     }
   }
+  getSchemaByKey(schema, key) {
+    const modelName = schema.$ref.replace("#/components/schemas/", "")
+    return this.schemas[modelName].getSchemaBuilderByKey(key).serialize();
+  }
 
-  parseParams(paramsDefintions, actionName) {
-    console.log("parseParams");
+  parseParams(actionName, paramsDefintions) {
+    if (paramsDefintions && Array.isArray(paramsDefintions)) {
+      paramsDefintions.forEach((parameter) => {
+        if (parameter.schema.$ref) {
+          const schema = this.getSchemaByKey(parameter.schema, "inputValidation");
+          const param = parseParameter({...parameter, schema})
+          if (param) {
+            const action = this.definition.actions[actionName];
+            if (param.query) {
+              this.addParam(action, "query", param.query)
+            }
+            if (param.params) {
+              this.addParam(action, "params", param.params)
+            }
+          }
+        }
+      })
+    }
+  }
+  addParam(action, type, schema) {
+    if (action.params[type]) {
+      action.params[type].props = Object.assign(action.params[type].props, schema)
+    } else {
+      action.params[type] = {
+        type: "object",
+        strict: true,
+        props: {
+          ...schema
+        }
+      }
+    }
   }
 
   start() {
     this.parseServiceSchema(this.definition);
-    console.log("@@@@@@@@@@@@@@@@@");
-    console.log(this.definition);
-    console.log("@@@@@@@@@@@@@@@@@");
   }
   getDefintion() {
     return this.definition;
