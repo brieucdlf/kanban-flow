@@ -45,13 +45,6 @@
                 "parameters": {
                   "createdBy": "$response.body#/id"
                 }
-              },
-              "tasksCreatedBy": {
-                "description": "List the tasks created by this user",
-                "operationId": "Tasks.api.search",
-                "parameters": {
-                  "createdBy": "$response.body#/id"
-                }
               }
             }
           }

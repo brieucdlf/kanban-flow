@@ -49,12 +49,39 @@ function parseParams(action, params) {
   return {}
 }
 
+function selectFnType (action) {
+  return "query";
+  if (/create|update|delete$/.test(action)) {
+    return "mutation";
+  }
+}
+function setDefaultParams(action) {
+  switch(action) {
+    case "get": return "";
+    case "find": return "";
+    case "update": return "";
+    case "create": return "";
+    case "delete": return "";
+  }
+  return {}
+}
+function createGQLDefinition(serviceName, method, action, type) {
+  const name = serviceName.substr(0, 1).toUpperCase()+serviceName.substr(1);
+  const def = {
+    [selectFnType(action)] : `${handlers[action]}${serviceName}(): ${name.substr(0, name.length -1)}`
+  }
+  return def;
+}
+
 module.exports = {
-  createAction(actionName, method) {
+  createAction(actionName, method, serviceName) {
     const dbFn = actionName.substr((actionName.lastIndexOf('.')+1))
+    const graphQlFn = createGQLDefinition(serviceName, method, dbFn, "jjjj");
     return {
       params: {},
-      graphql: {},
+      graphql: {
+        ...graphQlFn,
+      },
       handler(ctx) {
         console.log("~~PARAMS~~", actionName);
         const params = parseParams(handlers[dbFn], ctx.params);

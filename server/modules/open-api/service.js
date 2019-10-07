@@ -13,12 +13,14 @@ const {parseParameter} = require("./helpers/params");
 
 const filterJSON = require("./middlewares/filter")
 
+const graphQlMixins = require("./graphqlMixins");
 
 class ServiceDataCentric extends Service {
   constructor(broker, {definition, mixins, adapter, bodyRequestFormat, bodyResponseFormat, ...args}) {
     const requestFormat  = (bodyRequestFormat)  ? bodyRequestFormat  : (ctx) => {};
     const responseFormat = (bodyResponseFormat) ? bodyResponseFormat : (ctx) => {};
     super(broker);
+    this.gqlTypes = {};
     this.schemas = {};
     this.definition = {
       name: `${definition.info.title}`,
@@ -61,6 +63,7 @@ class ServiceDataCentric extends Service {
       settings: {
         $noVersionPrefix: true,
         idField: 'id',
+        graphql: {},
         restApi: {
           routes: [],
           openapi: definition,
@@ -74,7 +77,13 @@ class ServiceDataCentric extends Service {
     }
     this.processSchemas(definition.components.schemas)
     this.processPaths(definition.paths);
+    this.injectGraphQLTypes();
     this.schemas = null;
+    // console.log("@@@@@@@@@@@@@@@");
+    // console.log(this.definition.settings.graphql.type);
+    // console.log("~~~~~");
+    // console.log(this.definition.settings.graphql.resolvers);
+    // console.log("@@@@@@@@@@@@@@@");
   }
   parseInput(parseFn) {
 
@@ -111,22 +120,25 @@ class ServiceDataCentric extends Service {
       const actionList = pathList[path];
       Object.keys(actionList)
       .forEach((method) => {
+        // console.log("+++++++");
+        // console.log(path, method);
         const action = actionList[method];
         const actionName = action.operationId.replace(`${this.definition.name}.`, '');
         pathsTmp.push(this.definePath(path, method, actionName));
-        console.log("+++++++");
-        console.log(path, method);
         this.addAction(actionName, method)
         this.parseParams(actionName, action.parameters);
         if (this.hasRequestBody(action)) {
+          const schemaTmp = action.requestBody.content["application/json"].schema;
+          //Handle actions params
           const inputModel = this.getSchemaByKey(
-            action.requestBody.content["application/json"].schema,
+            schemaTmp,
             "inputValidation"
           );
           this.injectValidationModel(actionName, {body: {...inputModel,  strict: true}});
+          //Create GQL Input types
+          this.addToGQLModel(schemaTmp, 'input')
         }
         this.handleResponse(action.responses, actionName)
-        console.log("+++++++");
       })
     });
     pathsTmp.forEach(({method, path, action}) => {
@@ -186,10 +198,97 @@ class ServiceDataCentric extends Service {
     this.definition.hooks.after[actionName].push(function(ctx, res) {
       return filterJSON(model, res);
     });
+    const links = responses[responseCode].links;
+    this.handleLinks(responses[responseCode].links, actionName, responseSchema)
+
+    this.addToGQLModel(responseSchema);
+  }
+  handleLinks(links, actionName, schema) {
+    if (links) {
+      const resolvers = Object.keys(links)
+      .map((key) => {
+        return {key, ...links[key]}
+      })
+      .map((linkDef) => {
+        const params = Object.keys(linkDef.parameters)
+        .map((key) => {
+          const paramValue = linkDef.parameters[key];
+          let localParam = false;
+          if (/^\$response\.body#\/[a-zA-Z0-9]+/.test(paramValue)) {
+            localParam = paramValue.match(/^\$response\.body#\/([a-zA-Z0-9]+)/)[1];
+          }
+          if (localParam) {
+            return {
+              key:localParam,
+              value: key,
+              type: "rootParams",
+            }
+          }
+          const scalarType = schemaTypesToGrahlQLType(paramValue);
+          if (paramValue.length > 0 && scalarType && scalarType.length > 0) {
+            return {
+              key:scalarType,
+              value: key,
+              type: "params",
+            }
+          }
+          return {};
+        })
+        .reduce((acc, item) => {
+          const value = {[item.key]: item.value}
+          return {
+            ...acc,
+            [item.type]: Object.assign(value, acc[item.type]),
+          }
+        }, {rootParams: {}, params: {}});
+        return {
+          [linkDef.key]: {
+            action: linkDef.operationId,
+            ...params,
+          }
+        }
+      })
+      .reduce((acc, item) => Object.assign(acc, item), {})
+
+      // Injection inside the GQL types (responses types)
+      const dataModel = this.getSchema(schema, "graphQLTypes");
+      Object.keys(resolvers)
+      .forEach((resolverKey) => {
+        const resolver = resolvers[resolverKey];
+        const actionSplit = resolver.action.split('.')
+        const isArray = (actionSplit[2]==='search');
+        const type = `${isArray?'[':''}${actionSplit[0].substr(0, actionSplit[0].length-1)}${isArray?']':''}`
+        dataModel.addResolver(resolverKey, type);
+      });
+      if (Object.keys(resolvers).length > 0) {
+        const schemaName = dataModel.name;
+        const currentResolvers = this.definition.settings.graphql.resolvers || {};
+        this.definition.settings.graphql.resolvers = Object.assign(currentResolvers, {[schemaName]: resolvers})
+      }
+
+    }
+  }
+  injectGraphQLTypes() {
+    const types = Object.values(this.gqlTypes)
+    .join('');
+    if (types.length > 0) {
+      this.definition.settings.graphql.type = types;
+    }
+  }
+
+  addToGQLModel(schema, prefix='type') {
+    const key = schema.$ref;
+    const def = this.getSchemaByKey(
+      schema,
+      (prefix==='input')?"graphQLInput":"graphQLTypes"
+    );
+    if (!this.gqlTypes[`${prefix}${key}`]) {
+      this.gqlTypes[`${prefix}${key}`] = def;
+    }
   }
 
   addAction(name, method) {
-    const definition = actionFactories.createAction(name, method);
+    const definition = actionFactories.createAction(name, method, this.definition.name);
     this.definition.actions[name] = definition;
   }
   deleteAction(name) {
@@ -211,7 +310,9 @@ class ServiceDataCentric extends Service {
     return false;
   }
 
-  getSchemaByPath(ref) {
+  getSchema(schema, key) {
+    const modelName = schema.$ref.replace("#/components/schemas/", "")
+    return this.schemas[modelName].getSchemaBuilderByKey(key);
   }
   processSchemas(schemaList) {
     Object.keys(schemaList)

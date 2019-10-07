@@ -34,17 +34,8 @@ class GQLSchema {
       delete this.innerRefs[destPath];
     }
   }
-  setSchemaByPath(key, schemaObject) {
-    key.split(".")
-    .reduce((object, item, i, tab)=>{
-      if (i+1 === tab.length) {
-        object[item] = schemaObject;
-      }
-      if (object[item]) {
-        return object[item];
-      }
-    }
-    , this.innerSchema)
+  addResolver(key, type, required=false) {
+    this.innerSchema.push(`${key}: ${type}${(required)?'!':''}`)
   }
   getRef() {
     return {type: this.name};
@@ -53,7 +44,7 @@ class GQLSchema {
     return {};
   }
   serialize() {
-    return `${this.gqlType} ${this.name}{\r\n  ${this.innerSchema.join("\r\n  ")}\r\n}\r\n`;
+    return `${this.gqlType.toLowerCase()} ${this.name}${this.gqlType==='Type'?'':'Creator'}{\r\n  ${this.innerSchema.join("\r\n  ")}\r\n}\r\n`;
   }
 
   parse({type, key, required, ...args}, path) {

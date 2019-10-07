@@ -37,7 +37,7 @@ module.exports = {
               type: "rootParams",
             }
           }
-          const scalarType = this.schemaTypesToGrahlQLType(paramValue);
+          const scalarType = schemaTypesToGrahlQLType(paramValue);
           if (paramValue.length > 0 && scalarType && scalarType.length > 0) {
             return {
               key:scalarType,
@@ -70,7 +70,7 @@ module.exports = {
         case "array":
           let subStyle = "";
           if (schema.items.type) {
-              return `[${this.schemaTypesToGrahlQLType(schema.items.type)}]`
+              return `[${schemaTypesToGrahlQLType(schema.items.type)}]`
           }
       }
     },
@@ -78,7 +78,7 @@ module.exports = {
       if (params && params.length > 0) {
         const paramsStr = params
         .map((item) => {
-          return `${item.name}:${this.schemaTypesToGrahlQLType(item.schema.type, item.schema)}`;
+          return `${item.name}:${schemaTypesToGrahlQLType(item.schema.type, item.schema)}`;
         }).join(',')
         return `(${paramsStr})`;
       }
@@ -88,19 +88,22 @@ module.exports = {
       const firstKey = Object.keys(schemas)[0];
       const firstSchema = schemas[firstKey];
       const required = [].concat(schemas[firstKey].required);
-      const idField = this.settings.idField || 'id';
+      const idField = 'id';
       required.push(idField);
-      const schemaTypesToGrahlQLType = (type, schema) => {
-        switch(type) {
-          case "string": return "String";
-          case "integer": return "Int";
-          case "array":
-            let subStyle = "";
-            if (schema.items.type) {
-                return `[${schemaTypesToGrahlQLType(schema.items.type)}]`
-            }
-        }
-      }
+      // const schemaTypesToGrahlQLType = (type, schema) => {
+      //   switch(type) {
+      //     case "string": return "String";
+      //     case "integer": return "Int";
+      //     case "array":
+      //       let subStyle = "";
+      //       if (schema.items.type) {
+      //           return `[${schemaTypesToGrahlQLType(schema.items.type)}]`
+      //       }
+      //   }
+      // }
+      console.log("@@@@@@@@@@@@");
+      console.log(firstSchema);
+      console.log("@@@@@@@@@@@@");
       if (firstSchema.type === 'object') {
         let readOnlyProps = "";
         const resolversProperties = Object.keys(resolvers)

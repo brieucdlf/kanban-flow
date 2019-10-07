@@ -38,12 +38,6 @@
               }
             },
             "links": {
-              "containsTasksList": {
-                "operationId": "Tasks.api.search",
-                "parameters": {
-                  "boardId": "$response.body#/id"
-                }
-              },
               "creator": {
                 "operationId": "Users.api.read",
                 "parameters": {
@@ -217,12 +211,6 @@
         "description": "Unique Id format",
         "pattern": "^[a-fA-F0-9]{24}$"
       },
-      "InputBoard": {
-        "oneOf": [
-          {"$ref": "#/components/schemas/Board"},
-          {"$ref": "#/components/schemas/Boards"}
-        ]
-      },
       "Board": {
         "type": "object",
         "description": "Properties for each board",
@@ -248,6 +236,13 @@
             "x-entity": "Users:id"
           },
           "dateOfCreation": {
+            "description": "The resource creation date",
+            "type": "string",
+            "pattern": "(/[a-zA-Z0-9\\-_\\.])+",
+            "default": "$now()",
+            "readOnly": true
+          },
+          "dateOfModification": {
             "description": "The resource creation date",
             "type": "string",
             "pattern": "(/[a-zA-Z0-9\\-_\\.])+",
