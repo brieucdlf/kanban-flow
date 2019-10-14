@@ -40,6 +40,7 @@ class ServiceDataCentric extends Service {
         beforeHook: this.beforeHook,
         requestFormat,
         responseFormat,
+        mergeDeep: this.mergeDeep,
       },
       mixins,
       hooks: {
@@ -78,6 +79,7 @@ class ServiceDataCentric extends Service {
     this.processSchemas(definition.components.schemas)
     this.processPaths(definition.paths);
     this.injectGraphQLTypes();
+    this.mergeParamsForActionHandlers();
     this.schemas = null;
     // console.log("@@@@@@@@@@@@@@@");
     // console.log(this.definition.settings.graphql.type);
@@ -192,11 +194,7 @@ class ServiceDataCentric extends Service {
   }
   injectValidationModel(actionName, model) {
     const action = this.definition.actions[actionName];
-    action.params = Object.assign({}, action.params, model);
     action.inputSchema = Object.assign({}, action.inputSchema, model);
-    console.log("~~~~~~~~~~~~~~");
-    console.log(action);
-    console.log("~~~~~~~~~~~~~~");
   }
   handleResponse(responses, actionName) {
     const responseCode = Object.keys(responses)[0];
@@ -392,6 +390,22 @@ class ServiceDataCentric extends Service {
     return this.schemas[modelName].getSchemaBuilderByKey(key).serialize();
   }
 
+  mergeParamsForActionHandlers() {
+    Object.values(this.definition.actions)
+    .forEach((action) => {
+      if (action.inputSchema && Object.keys(action.inputSchema).length > 0) {
+        // On applatit le premier niveau de l'objet
+        let actionParams = Object.values(action.inputSchema)
+        .reduce((acc, item) => this.mergeDeep(acc, item.props), {});
+        action.params = actionParams;
+        console.log("##########222222##############");
+        console.log(action.inputSchema);
+        console.log("~~~~~~~~~");
+        console.log(actionParams);
+        console.log("##########222222##############");
+      }
+    })
+  }
   parseParams(actionName, paramsDefintions) {
     if (paramsDefintions && Array.isArray(paramsDefintions)) {
       paramsDefintions.forEach((parameter) => {
@@ -410,6 +424,31 @@ class ServiceDataCentric extends Service {
         }
       })
     }
+  }
+
+
+// Merge a `source` object to a `target` recursively
+  mergeDeep(target, source) {
+  const isObject = (obj) => obj && typeof obj === 'object';
+
+  if (!isObject(target) || !isObject(source)) {
+    return source;
+  }
+
+  Object.keys(source).forEach(key => {
+    const targetValue = target[key];
+    const sourceValue = source[key];
+
+    if (Array.isArray(targetValue) && Array.isArray(sourceValue)) {
+      target[key] = targetValue.concat(sourceValue);
+    } else if (isObject(targetValue) && isObject(sourceValue)) {
+      target[key] = this.mergeDeep(Object.assign({}, targetValue), sourceValue);
+    } else {
+      target[key] = sourceValue;
+    }
+  });
+
+  return target;
   }
 
   //Inject Path and stringquery parameters inside the schema for the input

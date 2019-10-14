@@ -96,18 +96,11 @@ module.exports = {
 						}
 						if (Array.isArray(routeDef)) {
 							routeDef.forEach((routeItem) => {
-								console.log("######111#######");
-								console.log(routeItem);
-								console.log("#############");
-
-								console.log("######22222222222######");
-								console.log(validators);
-								console.log("######22222222222######");
 								this.routes = this.routes.concat([this.createRoute({
 									...routeItem,
 									onBeforeCall(ctx, route, req, res) {
 										console.log("BEFORECALL www");
-										console.log(Object.keys(req.$action));
+										console.log(req.name);
 										console.log("~~~~~~~é");
 										const actionName = req.$action.name;
 										if (validators[actionName]) {
