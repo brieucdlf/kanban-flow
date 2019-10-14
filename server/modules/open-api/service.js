@@ -111,6 +111,11 @@ class ServiceDataCentric extends Service {
     if (!ctx.meta.isHttp && !ctx.params.params && ctx.params && Object.keys(ctx.params).length > 0) {
       ctx.params.params = ctx.params
     }
+    // Validate outside Data => FFF
+    // Si c'est une requete HTTP on lance la fonction de validation interne
+    if (ctx.meta.isHttp) {
+      console.log("HTTP REQUEST COMING");
+    }
   }
   /*******/
   processPaths(pathList) {
@@ -120,8 +125,6 @@ class ServiceDataCentric extends Service {
       const actionList = pathList[path];
       Object.keys(actionList)
       .forEach((method) => {
-        // console.log("+++++++");
-        // console.log(path, method);
         const action = actionList[method];
         const actionName = action.operationId.replace(`${this.definition.name}.`, '');
         pathsTmp.push(this.definePath(path, method, actionName));
@@ -190,6 +193,10 @@ class ServiceDataCentric extends Service {
   injectValidationModel(actionName, model) {
     const action = this.definition.actions[actionName];
     action.params = Object.assign({}, action.params, model);
+    action.inputSchema = Object.assign({}, action.inputSchema, model);
+    console.log("~~~~~~~~~~~~~~");
+    console.log(action);
+    console.log("~~~~~~~~~~~~~~");
   }
   handleResponse(responses, actionName) {
     const responseCode = Object.keys(responses)[0];
@@ -404,6 +411,10 @@ class ServiceDataCentric extends Service {
       })
     }
   }
+
+  //Inject Path and stringquery parameters inside the schema for the input
+  //validation inside the on before call of the www handler.
+  // @TODO clean action.params definition!!
   addParam(action, type, schema) {
     if (action.params[type]) {
       action.params[type].props = Object.assign(action.params[type].props, schema)
@@ -416,8 +427,20 @@ class ServiceDataCentric extends Service {
         }
       }
     }
+    if (action.inputSchema[type]) {
+      action.inputSchema[type].props = Object.assign(action.inputSchema[type].props, schema)
+    } else {
+      action.inputSchema[type] = {
+        type: "object",
+        strict: true,
+        props: {
+          ...schema
+        }
+      }
+    }
   }
 
+  // Compile the Service Definition and start it
   start() {
     this.parseServiceSchema(this.definition);
   }

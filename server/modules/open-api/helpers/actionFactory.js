@@ -68,7 +68,7 @@ function setDefaultParams(action) {
 function createGQLDefinition(serviceName, method, action, type) {
   const name = serviceName.substr(0, 1).toUpperCase()+serviceName.substr(1);
   const def = {
-    [selectFnType(action)] : `${handlers[action]}${serviceName}(): ${name.substr(0, name.length -1)}`
+    [selectFnType(action)] : `${handlers[action]}${serviceName}(id: String): ${name.substr(0, name.length -1)}`
   }
   return def;
 }
@@ -82,6 +82,7 @@ module.exports = {
       graphql: {
         ...graphQlFn,
       },
+      inputSchema: {},
       handler(ctx) {
         console.log("~~PARAMS~~", actionName);
         const params = parseParams(handlers[dbFn], ctx.params);

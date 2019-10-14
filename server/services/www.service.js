@@ -1,6 +1,10 @@
 "use strict";
 const ApiGateway = require("moleculer-web");
 const { ApolloService } = require("moleculer-apollo-server");
+const ValidatorFactory = require("fastest-validator");
+const validator = new ValidatorFactory();
+
+const { InvalidRequestBodyError } = require("../modules/open-api/errors");
 
 module.exports = {
 	name: "www",
@@ -11,6 +15,7 @@ module.exports = {
 	},
 	methods: {
 		beforeHooks(ctx) {
+			console.log("BEFORE HOOK SERVEUR");
 		}
 	},
   mixins: [
@@ -75,11 +80,49 @@ module.exports = {
 							}
 						}
 						const routeDef = serviceRoutes.settings.restApi.routes;
+						// Create compile schema validators for all the Rest actions
+						// Which name follows the format ServiceName.api.actionName
+						let validators = {}
+						if (serviceRoutes.actions) {
+							validators = Object.values(serviceRoutes.actions)
+							.filter((action) => {
+								return /^[^.]+.api.[^.]+$/.test(action.name)
+								&& action.inputSchema
+								&& Object.keys(action.inputSchema).length > 0;
+							})
+							.reduce((acc, action) => {
+								return {...acc, [action.name]: validator.compile(action.inputSchema)};
+							}, {});
+						}
 						if (Array.isArray(routeDef)) {
 							routeDef.forEach((routeItem) => {
+								console.log("######111#######");
+								console.log(routeItem);
+								console.log("#############");
+
+								console.log("######22222222222######");
+								console.log(validators);
+								console.log("######22222222222######");
 								this.routes = this.routes.concat([this.createRoute({
 									...routeItem,
 									onBeforeCall(ctx, route, req, res) {
+										console.log("BEFORECALL www");
+										console.log(Object.keys(req.$action));
+										console.log("~~~~~~~é");
+										const actionName = req.$action.name;
+										if (validators[actionName]) {
+											const isValidInput = validators[actionName](req.$params);
+											if (Array.isArray(isValidInput)) {
+												//Le format de l'input est invalide. On doit lever une erreur.
+												throw new InvalidRequestBodyError(req.$params, isValidInput);
+											}
+										}
+										const newParams = {...req.$params.params, ...req.$params.query, ...req.$params.body};
+										console.log(req.$params);
+										console.log("~~~~~~~é");
+										console.log(newParams);
+										req.$params.query = {};
+										console.log("BEFORECALL www");
 										// Set request headers to context meta
 										ctx.meta.$requestHeaders = req.headers;
 										ctx.meta.url = req.originalUrl;
@@ -92,6 +135,7 @@ module.exports = {
 							this.routes = this.routes.concat([this.createRoute({
 								...routeDef,
 								onBeforeCall(ctx, route, req, res) {
+									console.log("CECI EST UN ON BEFORE CALL");
 									// Set request headers to context meta
 									ctx.meta.$requestHeaders = req.headers;
 									ctx.meta.url = req.originalUrl;
