@@ -1,36 +1,3 @@
-
-
-
-
-// generateReadAction(entityType, paramsFn, headers, info, pathLinkHydrater, graphQL) {
-//   const entityName = entityType.replace(/^#\/([a-zA-Z0-9]+\/)+/, '');
-//   const queryName = `get${entityName.charAt(0).toUpperCase()}${entityName.slice(1)}`
-//   return {
-//     graphql: {
-//       query: `${queryName}${graphQL.params}: ${entityName}`
-//     },
-//     handler(ctx) {
-//       return paramsFn(Object.assign({}, ctx.params, ctx.params.params, ctx.params.query), this)
-//       .then((params) => ctx.broker.call(`${ctx.service.name}.get`, params, {parentCtx:ctx.meta.$span}))
-//       .then((results) => {
-//         return pathLinkHydrater(ctx.broker, "", "", ctx.params.body, results, ctx.meta, ctx)
-//         .then((linksResult) => {
-//           if (ctx.meta.hydrateDepth > 0 || !ctx.meta.isHttp || ctx.meta.isGraphQl) {
-//             return Object.assign(results, linksResult)
-//           }
-//           const links = this.createLinksHeader(linksResult);
-//           ctx.meta.$responseHeaders = {
-//             links,
-//           };
-//           return results;
-//         })
-//
-//       })
-//       .then((result) => this.bodyResponseFormat(result), err => {throw err});
-//     }
-//   }
-// },
-
 const handlers = {
   read  : "get",
   update: "update",
@@ -50,10 +17,10 @@ function parseParams(action, params) {
 }
 
 function selectFnType (action) {
-  return "query";
   if (/create|update|delete$/.test(action)) {
     return "mutation";
   }
+  return "query";
 }
 function setDefaultParams(action) {
   switch(action) {
@@ -65,10 +32,10 @@ function setDefaultParams(action) {
   }
   return {}
 }
-function createGQLDefinition(serviceName, method, action, type) {
+function createGQLDefinition(serviceName, method, action) {
   const name = serviceName.substr(0, 1).toUpperCase()+serviceName.substr(1);
   const def = {
-    [selectFnType(action)] : `${handlers[action]}${serviceName}(id: String): ${name.substr(0, name.length -1)}`
+    [selectFnType(action)] : `${handlers[action]}${serviceName}(%params%): ${name.substr(0, name.length -1)}`
   }
   return def;
 }
@@ -76,20 +43,20 @@ function createGQLDefinition(serviceName, method, action, type) {
 module.exports = {
   createAction(actionName, method, serviceName) {
     const dbFn = actionName.substr((actionName.lastIndexOf('.')+1))
-    const graphQlFn = createGQLDefinition(serviceName, method, dbFn, "jjjj");
+    const graphQlFn = createGQLDefinition(serviceName, method, dbFn);
     return {
       params: {},
       graphql: {
         ...graphQlFn,
       },
+      sanitizeSchema: {},
       inputSchema: {},
       handler(ctx) {
         console.log("~~PARAMS~~", actionName);
+        console.log(ctx.params);
         const params = parseParams(handlers[dbFn], ctx.params);
-        console.log(params);
         console.log("~~~~");
         return ctx.broker.call(`${ctx.service.name}.${handlers[dbFn]}`, params)
-        return "toto";
       }
     }
   }

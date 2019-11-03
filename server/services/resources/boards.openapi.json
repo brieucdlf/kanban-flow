@@ -138,12 +138,11 @@
             }
           },
           {
-            "name": "pageSize",
+            "name": "limit",
             "in": "query",
-            "description": "Filter the list by this property",
+            "description": "Maximum entities to return",
             "schema": {
-              "type": "integer",
-              "default": 100
+              "$ref": "#/components/schemas/Limit"
             }
           },
           {
@@ -206,6 +205,11 @@
   },
   "components": {
     "schemas": {
+      "Limit": {
+        "type": "integer",
+        "description": "The maximum of returned entities",
+        "default": 100
+      },
       "Id": {
         "type": "string",
         "description": "Unique Id format",

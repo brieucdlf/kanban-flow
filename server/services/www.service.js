@@ -91,6 +91,9 @@ module.exports = {
 								&& Object.keys(action.inputSchema).length > 0;
 							})
 							.reduce((acc, action) => {
+								console.log("&&&&&&&&&&&&&&&", action.name);
+								console.log(action.inputSchema);
+								console.log("&&&&&&&&&&&&&&&");
 								return {...acc, [action.name]: validator.compile(action.inputSchema)};
 							}, {});
 						}
@@ -114,7 +117,8 @@ module.exports = {
 										console.log(req.$params);
 										console.log("~~~~~~~é");
 										console.log(newParams);
-										req.$params.query = {};
+										// req.$params.query = {};
+										req.$params = newParams
 										console.log("BEFORECALL www");
 										// Set request headers to context meta
 										ctx.meta.$requestHeaders = req.headers;

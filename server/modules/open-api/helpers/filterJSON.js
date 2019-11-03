@@ -1,4 +1,4 @@
-class FvSchema {
+class JSONSchema {
   constructor(name) {
     this.innerSchema = {};
     this.name = name;
@@ -78,4 +78,4 @@ class FvSchema {
     return ;
   }
 }
-module.exports = FvSchema;
+module.exports = JSONSchema;

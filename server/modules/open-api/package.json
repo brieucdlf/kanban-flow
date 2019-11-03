@@ -14,6 +14,7 @@
   "author": "Javier Venegas",
   "license": "ISC",
   "dependencies": {
+    "@cypress/schema-tools": "^4.6.8",
     "bluebird": "^3.5.4",
     "body-parser": "^1.19.0",
     "busboy": "^0.3.1",

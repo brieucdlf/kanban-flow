@@ -81,11 +81,6 @@ class ServiceDataCentric extends Service {
     this.injectGraphQLTypes();
     this.mergeParamsForActionHandlers();
     this.schemas = null;
-    // console.log("@@@@@@@@@@@@@@@");
-    // console.log(this.definition.settings.graphql.type);
-    // console.log("~~~~~");
-    // console.log(this.definition.settings.graphql.resolvers);
-    // console.log("@@@@@@@@@@@@@@@");
   }
   parseInput(parseFn) {
 
@@ -130,8 +125,9 @@ class ServiceDataCentric extends Service {
         const action = actionList[method];
         const actionName = action.operationId.replace(`${this.definition.name}.`, '');
         pathsTmp.push(this.definePath(path, method, actionName));
-        this.addAction(actionName, method)
+        this.addAction(actionName, method);
         this.parseParams(actionName, action.parameters);
+        // On garde les params pour lancer la fonction de sanitize dans le hook Before
         if (this.hasRequestBody(action)) {
           const schemaTmp = action.requestBody.content["application/json"].schema;
           //Handle actions params
@@ -141,7 +137,11 @@ class ServiceDataCentric extends Service {
           );
           this.injectValidationModel(actionName, {body: {...inputModel,  strict: true}});
           //Create GQL Input types
-          this.addToGQLModel(schemaTmp, 'input')
+          const model = this.addToGQLModel(schemaTmp, 'input', true);
+          const gplInputType = `${model.name}Creator`;
+          this.injectGQLActionResolverParams(actionName, `input: ${gplInputType}`);
+        } else {
+          this.injectGQLActionResolverParams(actionName, `id: String`);
         }
         this.handleResponse(action.responses, actionName)
       })
@@ -280,8 +280,7 @@ class ServiceDataCentric extends Service {
       this.definition.settings.graphql.type = types;
     }
   }
-
-  addToGQLModel(schema, prefix='type') {
+  addToGQLModel(schema, prefix='type', get=false) {
     const key = schema.$ref;
     const def = this.getSchemaByKey(
       schema,
@@ -289,6 +288,21 @@ class ServiceDataCentric extends Service {
     );
     if (!this.gqlTypes[`${prefix}${key}`]) {
       this.gqlTypes[`${prefix}${key}`] = def;
+    }
+    if (get) {
+      return this.getSchema(
+        schema,
+        (prefix==='input')?"graphQLInput":"graphQLTypes"
+      );
+    }
+  }
+  injectGQLActionResolverParams(actionName, paramsStr) {
+    const action = this.definition.actions[actionName];
+    if (action.graphql && Object.keys(action.graphql).length > 0) {
+      Object.keys(action.graphql)
+      .forEach((resolver) => {
+        action.graphql[resolver] = action.graphql[resolver].replace("%params%", paramsStr);
+      });
     }
   }
 
@@ -376,7 +390,9 @@ class ServiceDataCentric extends Service {
         {key: "outputValidation", regexp: /all|read/, builder: new FvSchema(name)},
         {key: "graphQLTypes", regexp: /all|read/, builder: new GQLSchema(name)},
         {key: "graphQLInput", regexp: /all|write/, builder: new GQLSchema(name, "Input")},
-        {key: "outputFilter", regexp: /all|read/, builder: new FilterJSON(name)}
+        {key: "jsonSchemaOutput", regexp: /all|read/, builder: new FilterJSON(name)},
+        {key: "jsonSchemaInput", regexp: /all|write/, builder: new FilterJSON(name)}
+
       ]
     );
   }
@@ -398,11 +414,6 @@ class ServiceDataCentric extends Service {
         let actionParams = Object.values(action.inputSchema)
         .reduce((acc, item) => this.mergeDeep(acc, item.props), {});
         action.params = actionParams;
-        console.log("##########222222##############");
-        console.log(action.inputSchema);
-        console.log("~~~~~~~~~");
-        console.log(actionParams);
-        console.log("##########222222##############");
       }
     })
   }
@@ -410,8 +421,19 @@ class ServiceDataCentric extends Service {
     if (paramsDefintions && Array.isArray(paramsDefintions)) {
       paramsDefintions.forEach((parameter) => {
         if (parameter.schema.$ref) {
-          const schema = this.getSchemaByKey(parameter.schema, "inputValidation");
-          const param = parseParameter({...parameter, schema})
+          console.log("@@@@@@@@@@@@@@");
+          console.log(actionName);
+          console.log("~~~~", parameter.schema.$ref);
+          console.log(schema);
+          console.log("@@@@@@@@@@@@@@");
+          const schemaSanitize = this.getSchemaByKey(parameter.schema, "sanitizeInput");
+          const paramSanitize = parseParameter({...parameter, schemaSanitize});
+          if (paramSanitize) {
+            const action = this.definition.actions[actionName];
+
+          }
+          const schemaValidation = this.getSchemaByKey(parameter.schema, "inputValidation");
+          const param = parseParameter({...parameter, schemaValidation})
           if (param) {
             const action = this.definition.actions[actionName];
             if (param.query) {
@@ -455,17 +477,6 @@ class ServiceDataCentric extends Service {
   //validation inside the on before call of the www handler.
   // @TODO clean action.params definition!!
   addParam(action, type, schema) {
-    if (action.params[type]) {
-      action.params[type].props = Object.assign(action.params[type].props, schema)
-    } else {
-      action.params[type] = {
-        type: "object",
-        strict: true,
-        props: {
-          ...schema
-        }
-      }
-    }
     if (action.inputSchema[type]) {
       action.inputSchema[type].props = Object.assign(action.inputSchema[type].props, schema)
     } else {

@@ -68,7 +68,7 @@ class FvSchema {
         }
         return output;
       case "integer":
-        return { type: "integer", optional, };
+        return { type: "number", optional, integer: true, convert: true};
       case "array":
         return {
           type: "array",
