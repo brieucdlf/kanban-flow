@@ -22,7 +22,7 @@
     "etag": "^1.8.1",
     "fresh": "^0.5.2",
     "isstream": "^0.1.2",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.19",
     "path-to-regexp": "^3.0.0",
     "qs": "^6.7.0",
     "serve-static": "^1.13.2"
